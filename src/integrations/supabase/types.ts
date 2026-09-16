@@ -14,7 +14,281 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      collection_fields: {
+        Row: {
+          collection_id: string
+          created_at: string
+          id: string
+          name: string
+          options: Json
+          position: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          id?: string
+          name?: string
+          options?: Json
+          position?: number
+          type?: string
+          user_id?: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          options?: Json
+          position?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_fields_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_rows: {
+        Row: {
+          collection_id: string
+          created_at: string
+          data: Json
+          id: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          data?: Json
+          id?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          data?: Json
+          id?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_rows_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_views: {
+        Row: {
+          collection_id: string
+          config: Json
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          position: number
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          config?: Json
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          position?: number
+          user_id?: string
+        }
+        Update: {
+          collection_id?: string
+          config?: Json
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          position?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_views_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          is_trashed: boolean
+          name: string
+          position: number
+          space_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string
+          id?: string
+          is_trashed?: boolean
+          name?: string
+          position?: number
+          space_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          is_trashed?: boolean
+          name?: string
+          position?: number
+          space_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          content: string
+          created_at: string
+          icon: string
+          id: string
+          is_favorite: boolean
+          is_trashed: boolean
+          parent_id: string | null
+          position: number
+          space_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          is_favorite?: boolean
+          is_trashed?: boolean
+          parent_id?: string | null
+          position?: number
+          space_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          is_favorite?: boolean
+          is_trashed?: boolean
+          parent_id?: string | null
+          position?: number
+          space_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      spaces: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
