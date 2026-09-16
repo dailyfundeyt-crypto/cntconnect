@@ -285,12 +285,12 @@ export async function listRows(collectionId: string) {
 export async function createRow(collectionId: string, data: Record<string, unknown> = {}) {
   const { error } = await supabase
     .from("collection_rows")
-    .insert({ collection_id: collectionId, data });
+    .insert({ collection_id: collectionId, data: data as never });
   if (error) throw error;
 }
 
 export async function updateRow(id: string, data: Record<string, unknown>) {
-  const { error } = await supabase.from("collection_rows").update({ data }).eq("id", id);
+  const { error } = await supabase.from("collection_rows").update({ data: data as never }).eq("id", id);
   if (error) throw error;
 }
 
