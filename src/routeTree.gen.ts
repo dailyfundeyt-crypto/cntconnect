@@ -14,6 +14,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppTrashRouteImport } from './routes/_authenticated/app.trash'
+import { Route as AuthenticatedAppDocDocIdRouteImport } from './routes/_authenticated/app.doc.$docId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,17 +41,32 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppTrashRoute = AuthenticatedAppTrashRouteImport.update({
+  id: '/trash',
+  path: '/trash',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppDocDocIdRoute =
+  AuthenticatedAppDocDocIdRouteImport.update({
+    id: '/doc/$docId',
+    path: '/doc/$docId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/trash': typeof AuthenticatedAppTrashRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/doc/$docId': typeof AuthenticatedAppDocDocIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/app/trash': typeof AuthenticatedAppTrashRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/doc/$docId': typeof AuthenticatedAppDocDocIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -57,20 +74,24 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/trash': typeof AuthenticatedAppTrashRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/doc/$docId': typeof AuthenticatedAppDocDocIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/app' | '/app/'
+  fullPaths: '/' | '/auth' | '/app' | '/app/trash' | '/app/' | '/app/doc/$docId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app'
+  to: '/' | '/auth' | '/app/trash' | '/app' | '/app/doc/$docId'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/app'
+    | '/_authenticated/app/trash'
     | '/_authenticated/app/'
+    | '/_authenticated/app/doc/$docId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,15 +137,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/trash': {
+      id: '/_authenticated/app/trash'
+      path: '/trash'
+      fullPath: '/app/trash'
+      preLoaderRoute: typeof AuthenticatedAppTrashRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/doc/$docId': {
+      id: '/_authenticated/app/doc/$docId'
+      path: '/doc/$docId'
+      fullPath: '/app/doc/$docId'
+      preLoaderRoute: typeof AuthenticatedAppDocDocIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppTrashRoute: typeof AuthenticatedAppTrashRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppDocDocIdRoute: typeof AuthenticatedAppDocDocIdRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppTrashRoute: AuthenticatedAppTrashRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppDocDocIdRoute: AuthenticatedAppDocDocIdRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
