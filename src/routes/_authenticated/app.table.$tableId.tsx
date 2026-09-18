@@ -598,13 +598,14 @@ function FieldsDialog({
         name: newName.trim() || "Field",
         type: newType,
         position: fields.length,
-        choices:
-          newType === "select"
-            ? newChoices
+        ...(newType === "select"
+          ? {
+              choices: newChoices
                 .split(",")
                 .map((choice) => choice.trim())
-                .filter(Boolean)
-            : undefined,
+                .filter(Boolean),
+            }
+          : {}),
       }),
     onSuccess: () => {
       setNewName("");
