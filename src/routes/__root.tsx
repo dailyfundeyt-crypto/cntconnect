@@ -79,14 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Flux — Local workspace for docs and data" },
+      { title: "Spark — Local workspace for docs and data" },
       {
         name: "description",
         content:
-          "Flux is a private workspace that combines documents and flexible database tables in one place.",
+          "Spark is a private workspace that combines documents and flexible database tables in one place.",
       },
-      { name: "author", content: "Flux" },
-      { property: "og:title", content: "Flux — Local workspace for docs and data" },
+      { name: "author", content: "Spark" },
+      { property: "og:title", content: "Spark — Local workspace for docs and data" },
       {
         property: "og:description",
         content: "Docs, tables, galleries and boards in one private workspace.",

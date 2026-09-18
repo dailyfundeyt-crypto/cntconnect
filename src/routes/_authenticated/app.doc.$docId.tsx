@@ -11,8 +11,8 @@ import {
   createDocument,
   getDocument,
   updateDocument,
-  type FluxDocument,
-} from "@/lib/flux";
+  type SparkDocument,
+} from "@/lib/spark";
 
 export const Route = createFileRoute("/_authenticated/app/doc/$docId")({
   component: DocumentPage,
@@ -33,7 +33,7 @@ function DocumentPage() {
     queryFn: () => getDocument(docId),
   });
 
-  const doc = docQuery.data as FluxDocument | null | undefined;
+  const doc = docQuery.data as SparkDocument | null | undefined;
 
   useEffect(() => {
     if (doc && loadedIdRef.current !== doc.id) {
@@ -44,7 +44,7 @@ function DocumentPage() {
   }, [doc]);
 
   const save = useMutation({
-    mutationFn: (patch: Partial<FluxDocument>) => updateDocument(docId, patch),
+    mutationFn: (patch: Partial<SparkDocument>) => updateDocument(docId, patch),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["documents"] });
       void queryClient.invalidateQueries({ queryKey: ["document", docId] });
@@ -52,7 +52,7 @@ function DocumentPage() {
     onError: () => toast.error("Changes could not be saved"),
   });
 
-  function queueSave(patch: Partial<FluxDocument>) {
+  function queueSave(patch: Partial<SparkDocument>) {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => save.mutate(patch), 600);
   }
@@ -144,7 +144,7 @@ function DocumentPage() {
             className="min-h-[60vh] resize-none border-none bg-transparent px-0 font-sans text-base leading-relaxed shadow-none focus-visible:ring-0"
           />
         ) : (
-          <article className="flux-prose" dangerouslySetInnerHTML={{ __html: html as string }} />
+          <article className="spark-prose" dangerouslySetInnerHTML={{ __html: html as string }} />
         )}
       </div>
     </div>

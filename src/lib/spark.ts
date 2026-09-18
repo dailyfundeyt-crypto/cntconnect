@@ -8,7 +8,7 @@ export type Space = {
   created_at: string;
 };
 
-export type FluxDocument = {
+export type SparkDocument = {
   id: string;
   space_id: string | null;
   parent_id: string | null;
@@ -111,7 +111,7 @@ export async function listDocuments(spaceId?: string) {
   if (spaceId) query = query.eq("space_id", spaceId);
   const { data, error } = await query.order("position").order("created_at");
   if (error) throw error;
-  return (data ?? []) as FluxDocument[];
+  return (data ?? []) as SparkDocument[];
 }
 
 export async function listTrashedDocuments() {
@@ -121,13 +121,13 @@ export async function listTrashedDocuments() {
     .eq("is_trashed", true)
     .order("updated_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as FluxDocument[];
+  return (data ?? []) as SparkDocument[];
 }
 
 export async function getDocument(id: string) {
   const { data, error } = await supabase.from("documents").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
-  return data as FluxDocument | null;
+  return data as SparkDocument | null;
 }
 
 export async function createDocument(input: {
@@ -147,10 +147,10 @@ export async function createDocument(input: {
     .select()
     .single();
   if (error) throw error;
-  return data as FluxDocument;
+  return data as SparkDocument;
 }
 
-export async function updateDocument(id: string, patch: Partial<FluxDocument>) {
+export async function updateDocument(id: string, patch: Partial<SparkDocument>) {
   const { error } = await supabase.from("documents").update(patch).eq("id", id);
   if (error) throw error;
 }

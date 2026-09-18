@@ -5,20 +5,20 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FluxWordmark } from "@/components/flux/logo";
+import { SparkWordmark } from "@/components/spark/logo";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in to Flux" },
+      { title: "Sign in to Spark" },
       {
         name: "description",
-        content: "Sign in or create a Flux account to open your private workspace.",
+        content: "Sign in or create a Spark account to open your private workspace.",
       },
-      { property: "og:title", content: "Sign in to Flux" },
-      { property: "og:description", content: "Open your private Flux workspace." },
+      { property: "og:title", content: "Sign in to Spark" },
+      { property: "og:description", content: "Open your private Spark workspace." },
     ],
   }),
   component: AuthPage,
@@ -86,7 +86,7 @@ function AuthPage() {
     <main className="grain-bg flex min-h-screen items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm">
         <Link to="/" className="mb-8 flex justify-center">
-          <FluxWordmark />
+          <SparkWordmark />
         </Link>
 
         {sentConfirm ? (

@@ -2,18 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Database, FileText, KanbanSquare, Lock, Search, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { FluxLogo, FluxWordmark } from "@/components/flux/logo";
+import { SparkLogo, SparkWordmark } from "@/components/spark/logo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Flux — Your private workspace for docs and data" },
+      { title: "Spark — Your private workspace for docs and data" },
       {
         name: "description",
         content:
-          "Flux joins documents and flexible tables with table, gallery and board views in one private workspace.",
+          "Spark joins documents and flexible tables with table, gallery and board views in one private workspace.",
       },
-      { property: "og:title", content: "Flux — Your private workspace for docs and data" },
+      { property: "og:title", content: "Spark — Your private workspace for docs and data" },
       {
         property: "og:description",
         content: "Documents, tables, galleries and boards. Private to your account.",
@@ -60,7 +60,7 @@ function Landing() {
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <FluxWordmark />
+        <SparkWordmark />
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost">
             <Link to="/auth">Sign in</Link>
@@ -74,14 +74,14 @@ function Landing() {
       <main>
         <section className="grain-bg border-b border-border">
           <div className="mx-auto max-w-6xl px-6 py-24 text-center">
-            <FluxLogo className="mx-auto h-16 w-16" />
+            <SparkLogo className="mx-auto h-16 w-16" />
             <h1 className="mt-8 text-5xl font-bold tracking-tight sm:text-6xl">
               Docs and databases,
               <br />
               in one calm workspace
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
-              Flux keeps your notes and your structured data side by side. Write a page, turn a
+              Spark keeps your notes and your structured data side by side. Write a page, turn a
               list into a table, and switch to a board when you need to see progress.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-3">
@@ -111,7 +111,7 @@ function Landing() {
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-8 text-sm text-muted-foreground">
-          <FluxWordmark />
+          <SparkWordmark />
           <span>Private workspace · {new Date().getFullYear()}</span>
         </div>
       </footer>
