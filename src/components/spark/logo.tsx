@@ -6,7 +6,7 @@ export function SparkLogo({ className }: { className?: string }) {
     <img
       src={logoAsset.url}
       alt="Spark logo"
-      className={cn("h-7 w-7 object-contain mix-blend-multiply dark:invert", className)}
+      className={cn("h-7 w-7 rounded-lg object-contain", className)}
     />
   );
 }
