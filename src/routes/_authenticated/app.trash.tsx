@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RotateCcw, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { deleteDocumentForever, listTrashedDocuments, updateDocument } from "@/lib/flux";
+import { deleteDocumentForever, listTrashedDocuments, updateDocument } from "@/lib/spark";
 
 export const Route = createFileRoute("/_authenticated/app/trash")({
   component: TrashPage,

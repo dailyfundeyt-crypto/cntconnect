@@ -46,7 +46,7 @@ import {
   type CollectionView,
   type FieldType,
   type ViewKind,
-} from "@/lib/flux";
+} from "@/lib/spark";
 
 export const Route = createFileRoute("/_authenticated/app/table/$tableId")({
   component: CollectionPage,

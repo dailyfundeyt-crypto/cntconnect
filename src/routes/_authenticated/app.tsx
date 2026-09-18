@@ -30,7 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FluxWordmark } from "@/components/flux/logo";
+import { SparkWordmark } from "@/components/spark/logo";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -43,7 +43,7 @@ import {
   listDocuments,
   listSpaces,
   searchAll,
-} from "@/lib/flux";
+} from "@/lib/spark";
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: WorkspaceLayout,
@@ -146,7 +146,7 @@ function WorkspaceLayout() {
       <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
         <div className="flex items-center justify-between px-4 py-4">
           <Link to="/app" className="flex items-center">
-            <FluxWordmark />
+            <SparkWordmark />
           </Link>
         </div>
 
@@ -288,7 +288,7 @@ function WorkspaceLayout() {
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3 md:hidden">
           <Link to="/app">
-            <FluxWordmark />
+            <SparkWordmark />
           </Link>
           <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setPaletteOpen(true)}>
             <Search className="h-4 w-4" />

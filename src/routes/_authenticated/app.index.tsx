@@ -9,7 +9,7 @@ import {
   ensureDefaultSpace,
   listCollections,
   listDocuments,
-} from "@/lib/flux";
+} from "@/lib/spark";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: WorkspaceHome,

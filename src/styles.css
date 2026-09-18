@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Flux design system.
+ * Spark design system.
  * Warm paper surfaces, graphite ink, a single electric accent.
  * All colors are oklch tokens; never hardcode colors in components.
  */
@@ -164,79 +164,79 @@
 }
 
 /* Markdown rendering for document previews */
-.flux-prose {
+.spark-prose {
   color: var(--color-foreground);
   line-height: 1.7;
 }
-.flux-prose h1 {
+.spark-prose h1 {
   font-size: 1.9rem;
   font-weight: 700;
   margin: 1.4rem 0 0.6rem;
 }
-.flux-prose h2 {
+.spark-prose h2 {
   font-size: 1.45rem;
   font-weight: 700;
   margin: 1.3rem 0 0.5rem;
 }
-.flux-prose h3 {
+.spark-prose h3 {
   font-size: 1.15rem;
   font-weight: 600;
   margin: 1.1rem 0 0.4rem;
 }
-.flux-prose p {
+.spark-prose p {
   margin: 0.7rem 0;
 }
-.flux-prose ul,
-.flux-prose ol {
+.spark-prose ul,
+.spark-prose ol {
   margin: 0.7rem 0 0.7rem 1.3rem;
   list-style: revert;
 }
-.flux-prose li {
+.spark-prose li {
   margin: 0.25rem 0;
 }
-.flux-prose a {
+.spark-prose a {
   color: var(--color-accent);
   text-decoration: underline;
 }
-.flux-prose code {
+.spark-prose code {
   font-family: var(--font-mono);
   font-size: 0.85em;
   background-color: var(--color-muted);
   padding: 0.1rem 0.3rem;
   border-radius: var(--radius-sm);
 }
-.flux-prose pre {
+.spark-prose pre {
   background-color: var(--color-muted);
   padding: 0.9rem;
   border-radius: var(--radius-md);
   overflow-x: auto;
   margin: 0.8rem 0;
 }
-.flux-prose pre code {
+.spark-prose pre code {
   background: none;
   padding: 0;
 }
-.flux-prose blockquote {
+.spark-prose blockquote {
   border-left: 3px solid var(--color-accent);
   padding-left: 0.9rem;
   color: var(--color-muted-foreground);
   margin: 0.8rem 0;
 }
-.flux-prose hr {
+.spark-prose hr {
   margin: 1.4rem 0;
   border-top: 1px solid var(--color-border);
 }
-.flux-prose table {
+.spark-prose table {
   width: 100%;
   border-collapse: collapse;
   margin: 0.9rem 0;
 }
-.flux-prose th,
-.flux-prose td {
+.spark-prose th,
+.spark-prose td {
   border: 1px solid var(--color-border);
   padding: 0.45rem 0.6rem;
   text-align: left;
 }
-.flux-prose input[type="checkbox"] {
+.spark-prose input[type="checkbox"] {
   margin-right: 0.4rem;
 }
