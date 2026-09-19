@@ -259,6 +259,36 @@ export type Database = {
         }
         Relationships: []
       }
+      slack_bot_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_enabled: boolean
+          slack_team_id: string
+          slack_user_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          slack_team_id: string
+          slack_user_id: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          slack_team_id?: string
+          slack_user_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       spaces: {
         Row: {
           created_at: string
