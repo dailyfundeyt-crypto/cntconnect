@@ -52,7 +52,10 @@ Docs · Sheets · Boards · Books · Media · Finance
 - Einen frei verschiebbaren, weißen leuchtenden Kreis über der Oberfläche platzieren; Position pro Nutzer speichern.
 - Klick öffnet die AI-Fläche mit Chat, Quellenwahl, Agentenprofilen und verfügbaren Werkzeugen.
 - Vorlesen über Sprachsynthese ergänzen; während der Wiedergabe animieren drei versetzte, großzügige Pfeil-/Wellenformen den Kreis. Pause, Fortsetzen und Stopp sind direkt erreichbar; reduzierte Bewegung wird respektiert.
-- Spark als geschützten MCP-Server veröffentlichen: Seiten, Tabellen, Boards, Bücher, Karten und Wissenseinträge suchen, lesen und – nach Berechtigung – erstellen oder ändern.
+- Spark als geschützten MCP-Server veröffentlichen, damit ChatGPT, Claude, Cursor, Codex und andere MCP-Clients alle freigegebenen Spark-Bereiche nutzen können.
+- Der Spark-MCP erhält einen vollständigen, modularen Werkzeugkatalog: Spaces und Unterseiten; Dokumente und Anhänge; Datenbanken und Kalkulationstabellen; Boards; Bücher, Markierungen und Lesefortschritt; Artikel; Tweets und Wissensgraph; Lernzettel und Karteikarten; Finanzen; veröffentlichte Mini-Apps; Suche und AI-Aktionen. Werkzeuge unterstützen je nach Berechtigung Lesen, Suchen, Erstellen, Ändern, Importieren, Exportieren und Synchronisieren.
+- Berechtigungen werden pro Verbindung und Bereich steuerbar: standardmäßig nur Lesen, Schreibzugriff bewusst freigeben, besonders riskante Aktionen separat bestätigen. Private Daten werden niemals allein durch die MCP-Veröffentlichung öffentlich.
+- Große Dateien, Videoanalyse und umfangreiche Generierungen bleiben asynchrone Spark-Aufgaben; MCP kann sie starten, Status lesen und fertige Ergebnisse abrufen, ohne in ein Zeitlimit zu laufen.
 - Spark gleichzeitig als MCP-Client ausbauen: Miro und weitere Remote-MCPs pro Nutzer verbinden, OAuth-Daten verschlüsselt speichern, Werkzeuge nur serverseitig laden und nach jeder Anfrage schließen.
 - Google Sheets/Excel werden in der AI-Fläche als Werkzeuge sichtbar. Wo kein produktionsreifer offizieller Remote-MCP existiert, nutzt Spark die sichere Nutzerverbindung intern und stellt dieselben Aktionen über den eigenen Spark-MCP-Werkzeugkatalog bereit.
 
