@@ -10,6 +10,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>): { next?: string } => {
+    const next = search['next'];
+    return typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
+      ? { next }
+      : {};
+  },
   head: () => ({
     meta: [
       { title: "Sign in to Spark" },
@@ -23,6 +29,11 @@ export const Route = createFileRoute("/auth")({
   }),
   component: AuthPage,
 });
+
+/** Same-origin relative return target, used after every sign-in path. */
+function safeNext(next: string | undefined) {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+}
 
 function AuthPage() {
   const navigate = useNavigate();
