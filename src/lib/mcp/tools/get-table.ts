@@ -2,6 +2,21 @@ import { defineTool, ToolError } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { supabaseForUser } from "../supabase";
 
+type Cell = string | number | boolean | null;
+
+function toCellMap(raw: unknown) {
+  const out: { [key: string]: Cell } = {};
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+      out[key] =
+        value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean"
+          ? value
+          : JSON.stringify(value);
+    }
+  }
+  return out;
+}
+
 export default defineTool({
   name: "get_table",
   title: "Get table",
@@ -48,7 +63,7 @@ export default defineTool({
       rows: (rows.data ?? []).map((r) => ({
         id: r.id,
         position: r.position,
-        values: JSON.parse(JSON.stringify(r.data ?? {})) as Record<string, unknown>,
+        values: toCellMap(r.data),
       })),
     };
     return {
