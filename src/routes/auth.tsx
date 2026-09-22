@@ -10,9 +10,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    next: typeof search['next'] === "string" && search['next'].startsWith("/") ? search['next'] : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { next?: string } => {
+    const next = search['next'];
+    return typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
+      ? { next }
+      : {};
+  },
   head: () => ({
     meta: [
       { title: "Sign in to Spark" },
