@@ -138,8 +138,41 @@ function WorkspaceLayout() {
     },
   });
 
+  const [currentUser, setCurrentUser] = useState<{
+    name?: string | undefined;
+    email?: string | undefined;
+    picture?: string | undefined;
+  } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const rawGoogle = localStorage.getItem("spark_google_user");
+      if (rawGoogle) {
+        try {
+          const parsed = JSON.parse(rawGoogle);
+          setCurrentUser(parsed);
+          return;
+        } catch {}
+      }
+      void supabase.auth.getUser().then(({ data }) => {
+        if (data.user) {
+          const meta = data.user.user_metadata as Record<string, any> | undefined;
+          setCurrentUser({
+            name: (meta?.["full_name"] as string | undefined) || data.user.email?.split("@")[0],
+            email: data.user.email,
+          });
+        }
+      });
+    }
+  }, []);
+
   async function signOut() {
     await supabase.auth.signOut();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("spark_google_user");
+      localStorage.removeItem("spark_gcal_token");
+      localStorage.removeItem("spark_gcal_token_expiry");
+    }
     queryClient.clear();
     navigate({ to: "/auth" });
   }
@@ -331,8 +364,31 @@ function WorkspaceLayout() {
           </Section>
         </nav>
 
-        <div className="border-t border-sidebar-border p-3">
-          <Button variant="ghost" className="w-full justify-start" onClick={signOut}>
+        <div className="border-t border-sidebar-border p-3 space-y-2">
+          {currentUser && (
+            <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg bg-sidebar-accent/50 text-xs">
+              {currentUser.picture ? (
+                <img
+                  src={currentUser.picture}
+                  alt={currentUser.name || "User"}
+                  className="h-7 w-7 rounded-full object-cover border border-border"
+                />
+              ) : (
+                <div className="h-7 w-7 rounded-full bg-accent/20 text-accent font-bold flex items-center justify-center text-xs shrink-0">
+                  {(currentUser.name || currentUser.email || "U")[0]?.toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-foreground truncate text-xs">
+                  {currentUser.name || "Angemeldet"}
+                </p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {currentUser.email}
+                </p>
+              </div>
+            </div>
+          )}
+          <Button variant="ghost" className="w-full justify-start text-xs" onClick={signOut}>
             <LogOut className="mr-2 h-4 w-4" /> Abmelden
           </Button>
         </div>
