@@ -8,14 +8,18 @@ import {
   ChevronDown,
   Database,
   FileText,
+  Headphones,
   Heart,
   LogOut,
+  Network,
+  PenTool,
   Plus,
   Search,
   Star,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { FocusAudioPlayer } from "@/components/spark/focus-audio-player";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,6 +221,24 @@ function WorkspaceLayout() {
               icon={<Brain className="h-4 w-4 text-purple-600" />}
               label="Wissen & Recall"
             />
+            <SidebarLink
+              to="/app/graph"
+              active={pathname === "/app/graph"}
+              icon={<Network className="h-4 w-4 text-blue-600" />}
+              label="Wissens-Graph"
+            />
+            <SidebarLink
+              to="/app/canvas"
+              active={pathname === "/app/canvas"}
+              icon={<PenTool className="h-4 w-4 text-indigo-600" />}
+              label="Whiteboard Canvas"
+            />
+            <SidebarLink
+              to="/app/audio"
+              active={pathname === "/app/audio"}
+              icon={<Headphones className="h-4 w-4 text-pink-600" />}
+              label="Brain.fm Audio"
+            />
           </Section>
 
           {favorites.length > 0 && (
@@ -345,6 +367,9 @@ function WorkspaceLayout() {
           <Button onClick={() => addSpace.mutate()}>Create space</Button>
         </DialogContent>
       </Dialog>
+
+      {/* Global Persistent Floating Focus Audio Player (Brain.fm) */}
+      <FocusAudioPlayer />
     </div>
   );
 }

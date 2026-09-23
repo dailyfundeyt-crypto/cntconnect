@@ -15,7 +15,11 @@ type StorageKey =
   | "spark_library"
   | "spark_health"
   | "spark_recall"
-  | "spark_notebooks";
+  | "spark_notebooks"
+  | "spark_grounded_sources"
+  | "spark_youtube_channels"
+  | "spark_flashcards"
+  | "spark_canvas_cards";
 
 const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
 

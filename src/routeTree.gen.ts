@@ -17,6 +17,9 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppAudioRouteImport } from './routes/_authenticated/app.audio'
+import { Route as AuthenticatedAppCanvasRouteImport } from './routes/_authenticated/app.canvas'
+import { Route as AuthenticatedAppGraphRouteImport } from './routes/_authenticated/app.graph'
 import { Route as AuthenticatedAppHealthRouteImport } from './routes/_authenticated/app.health'
 import { Route as AuthenticatedAppLearnRouteImport } from './routes/_authenticated/app.learn'
 import { Route as AuthenticatedAppPlanRouteImport } from './routes/_authenticated/app.plan'
@@ -65,6 +68,21 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppAudioRoute = AuthenticatedAppAudioRouteImport.update({
+  id: '/audio',
+  path: '/audio',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppCanvasRoute = AuthenticatedAppCanvasRouteImport.update({
+  id: '/canvas',
+  path: '/canvas',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppGraphRoute = AuthenticatedAppGraphRouteImport.update({
+  id: '/graph',
+  path: '/graph',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppHealthRoute = AuthenticatedAppHealthRouteImport.update({
   id: '/health',
   path: '/health',
@@ -110,6 +128,9 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/app/audio': typeof AuthenticatedAppAudioRoute
+  '/app/canvas': typeof AuthenticatedAppCanvasRoute
+  '/app/graph': typeof AuthenticatedAppGraphRoute
   '/app/health': typeof AuthenticatedAppHealthRoute
   '/app/learn': typeof AuthenticatedAppLearnRoute
   '/app/plan': typeof AuthenticatedAppPlanRoute
@@ -125,6 +146,9 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/app/audio': typeof AuthenticatedAppAudioRoute
+  '/app/canvas': typeof AuthenticatedAppCanvasRoute
+  '/app/graph': typeof AuthenticatedAppGraphRoute
   '/app/health': typeof AuthenticatedAppHealthRoute
   '/app/learn': typeof AuthenticatedAppLearnRoute
   '/app/plan': typeof AuthenticatedAppPlanRoute
@@ -143,6 +167,9 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/_authenticated/app/audio': typeof AuthenticatedAppAudioRoute
+  '/_authenticated/app/canvas': typeof AuthenticatedAppCanvasRoute
+  '/_authenticated/app/graph': typeof AuthenticatedAppGraphRoute
   '/_authenticated/app/health': typeof AuthenticatedAppHealthRoute
   '/_authenticated/app/learn': typeof AuthenticatedAppLearnRoute
   '/_authenticated/app/plan': typeof AuthenticatedAppPlanRoute
@@ -161,6 +188,9 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/app'
     | '/.lovable/oauth/consent'
+    | '/app/audio'
+    | '/app/canvas'
+    | '/app/graph'
     | '/app/health'
     | '/app/learn'
     | '/app/plan'
@@ -176,6 +206,9 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/.well-known/oauth-protected-resource'
     | '/.lovable/oauth/consent'
+    | '/app/audio'
+    | '/app/canvas'
+    | '/app/graph'
     | '/app/health'
     | '/app/learn'
     | '/app/plan'
@@ -193,6 +226,9 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/app'
     | '/.lovable/oauth/consent'
+    | '/_authenticated/app/audio'
+    | '/_authenticated/app/canvas'
+    | '/_authenticated/app/graph'
     | '/_authenticated/app/health'
     | '/_authenticated/app/learn'
     | '/_authenticated/app/plan'
@@ -270,6 +306,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/audio': {
+      id: '/_authenticated/app/audio'
+      path: '/audio'
+      fullPath: '/app/audio'
+      preLoaderRoute: typeof AuthenticatedAppAudioRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/canvas': {
+      id: '/_authenticated/app/canvas'
+      path: '/canvas'
+      fullPath: '/app/canvas'
+      preLoaderRoute: typeof AuthenticatedAppCanvasRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/graph': {
+      id: '/_authenticated/app/graph'
+      path: '/graph'
+      fullPath: '/app/graph'
+      preLoaderRoute: typeof AuthenticatedAppGraphRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/health': {
       id: '/_authenticated/app/health'
       path: '/health'
@@ -323,6 +380,9 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppAudioRoute: typeof AuthenticatedAppAudioRoute
+  AuthenticatedAppCanvasRoute: typeof AuthenticatedAppCanvasRoute
+  AuthenticatedAppGraphRoute: typeof AuthenticatedAppGraphRoute
   AuthenticatedAppHealthRoute: typeof AuthenticatedAppHealthRoute
   AuthenticatedAppLearnRoute: typeof AuthenticatedAppLearnRoute
   AuthenticatedAppPlanRoute: typeof AuthenticatedAppPlanRoute
@@ -334,6 +394,9 @@ interface AuthenticatedAppRouteChildren {
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppAudioRoute: AuthenticatedAppAudioRoute,
+  AuthenticatedAppCanvasRoute: AuthenticatedAppCanvasRoute,
+  AuthenticatedAppGraphRoute: AuthenticatedAppGraphRoute,
   AuthenticatedAppHealthRoute: AuthenticatedAppHealthRoute,
   AuthenticatedAppLearnRoute: AuthenticatedAppLearnRoute,
   AuthenticatedAppPlanRoute: AuthenticatedAppPlanRoute,
