@@ -2,13 +2,27 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowDownAZ,
+  ArrowUpAZ,
+  Calendar,
+  Check,
+  CheckSquare,
+  ChevronDown,
   Columns3,
+  Copy,
+  ExternalLink,
+  Hash,
   KanbanSquare,
   LayoutGrid,
+  Link2,
+  MoreHorizontal,
   Plus,
+  Search,
   Settings2,
   Table2,
+  Tag,
   Trash2,
+  Type,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,7 +30,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -49,17 +71,23 @@ import {
 } from "@/lib/spark";
 
 export const Route = createFileRoute("/_authenticated/app/table/$tableId")({
+  head: () => ({
+    meta: [
+      { title: "Tabelle — Spark" },
+      { name: "description", content: "Vollwertige relationale Datenbank-Tabelle mit Grid, Galerie und Board." },
+    ],
+  }),
   component: CollectionPage,
 });
 
-const FIELD_TYPES: { value: FieldType; label: string }[] = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "checkbox", label: "Checkbox" },
-  { value: "select", label: "Select" },
-  { value: "date", label: "Date" },
-  { value: "url", label: "Link" },
-];
+const FIELD_TYPE_CONFIG: Record<FieldType, { label: string; icon: typeof Type }> = {
+  text: { label: "Text", icon: Type },
+  number: { label: "Zahl", icon: Hash },
+  checkbox: { label: "Checkbox", icon: CheckSquare },
+  select: { label: "Auswahl / Status", icon: Tag },
+  date: { label: "Datum", icon: Calendar },
+  url: { label: "Link / URL", icon: Link2 },
+};
 
 const VIEW_ICONS: Record<ViewKind, typeof Table2> = {
   table: Table2,
@@ -71,9 +99,19 @@ function CollectionPage() {
   const { tableId } = Route.useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
   const [fieldsOpen, setFieldsOpen] = useState(false);
   const [name, setName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortFieldId, setSortFieldId] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  // Quick column popover
+  const [newColOpen, setNewColOpen] = useState(false);
+  const [newColName, setNewColName] = useState("");
+  const [newColType, setNewColType] = useState<FieldType>("text");
+  const [newColChoices, setNewColChoices] = useState("Offen, In Arbeit, Erledigt");
 
   const collectionQuery = useQuery({
     queryKey: ["collection", tableId],
@@ -83,8 +121,14 @@ function CollectionPage() {
     queryKey: ["fields", tableId],
     queryFn: () => listFields(tableId),
   });
-  const rowsQuery = useQuery({ queryKey: ["rows", tableId], queryFn: () => listRows(tableId) });
-  const viewsQuery = useQuery({ queryKey: ["views", tableId], queryFn: () => listViews(tableId) });
+  const rowsQuery = useQuery({
+    queryKey: ["rows", tableId],
+    queryFn: () => listRows(tableId),
+  });
+  const viewsQuery = useQuery({
+    queryKey: ["views", tableId],
+    queryFn: () => listViews(tableId),
+  });
 
   const collection = collectionQuery.data;
   const fields = fieldsQuery.data ?? [];
@@ -111,8 +155,11 @@ function CollectionPage() {
 
   const addRow = useMutation({
     mutationFn: (seed: Record<string, unknown> = {}) => createRow(tableId, seed),
-    onSuccess: invalidate,
-    onError: () => toast.error("Could not add the record"),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Zeile hinzugefügt");
+    },
+    onError: () => toast.error("Konnte Zeile nicht hinzufügen"),
   });
 
   const saveRow = useMutation({
@@ -121,16 +168,56 @@ function CollectionPage() {
     onSuccess: invalidate,
   });
 
+  const duplicateRow = useMutation({
+    mutationFn: (row: CollectionRow) => {
+      const cloned = { ...row.data };
+      if (fields[0]) cloned[fields[0].id] = `${cloned[fields[0].id] ?? ""} (Kopie)`;
+      return createRow(tableId, cloned);
+    },
+    onSuccess: () => {
+      invalidate();
+      toast.success("Zeile dupliziert");
+    },
+  });
+
   const removeRow = useMutation({
     mutationFn: (id: string) => deleteRow(id),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success("Zeile gelöscht");
+    },
+  });
+
+  const addFieldMutation = useMutation({
+    mutationFn: (input: { name: string; type: FieldType; choices?: string[] | undefined }) =>
+      createField({
+        collectionId: tableId,
+        name: input.name,
+        type: input.type,
+        position: fields.length,
+        choices: input.choices,
+      }),
+    onSuccess: () => {
+      invalidate();
+      setNewColOpen(false);
+      setNewColName("");
+      toast.success("Spalte hinzugefügt");
+    },
+  });
+
+  const removeFieldMutation = useMutation({
+    mutationFn: (id: string) => deleteField(id),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Spalte gelöscht");
+    },
   });
 
   const addView = useMutation({
     mutationFn: (kind: ViewKind) =>
       createView({
         collectionId: tableId,
-        name: kind === "table" ? "Table" : kind === "gallery" ? "Gallery" : "Board",
+        name: kind === "table" ? "Tabelle" : kind === "gallery" ? "Galerie" : "Board",
         kind,
         position: views.length,
         config: {},
@@ -146,12 +233,6 @@ function CollectionPage() {
     },
   });
 
-  const patchView = useMutation({
-    mutationFn: (input: { id: string; patch: Partial<CollectionView> }) =>
-      updateView(input.id, input.patch),
-    onSuccess: invalidate,
-  });
-
   const removeCollection = useMutation({
     mutationFn: () => deleteCollectionForever(tableId),
     onSuccess: () => {
@@ -160,123 +241,279 @@ function CollectionPage() {
     },
   });
 
+  // Filter and sort rows
+  const filteredAndSortedRows = useMemo(() => {
+    let result = [...rows];
+
+    // Search query filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((row) =>
+        Object.values(row.data).some((val) =>
+          val !== null && val !== undefined && String(val).toLowerCase().includes(q)
+        )
+      );
+    }
+
+    // Column sorting
+    if (sortFieldId) {
+      result.sort((a, b) => {
+        const valA = a.data[sortFieldId];
+        const valB = b.data[sortFieldId];
+        if (valA === valB) return 0;
+        if (valA === null || valA === undefined) return 1;
+        if (valB === null || valB === undefined) return -1;
+
+        const cmp = String(valA).localeCompare(String(valB), "de", { numeric: true });
+        return sortOrder === "asc" ? cmp : -cmp;
+      });
+    }
+
+    return result;
+  }, [rows, searchQuery, sortFieldId, sortOrder]);
+
   if (collectionQuery.isLoading) {
-    return <div className="px-8 py-12 text-sm text-muted-foreground">Loading…</div>;
+    return <div className="px-8 py-12 text-sm text-muted-foreground">Tabelle wird geladen…</div>;
   }
   if (!collection) {
-    return <div className="px-8 py-12 text-sm text-muted-foreground">This table no longer exists.</div>;
+    return (
+      <div className="px-8 py-12 text-sm text-muted-foreground">
+        Diese Tabelle existiert nicht mehr oder wurde gelöscht.
+      </div>
+    );
   }
 
   const titleField = fields[0] ?? null;
-  const selectFields = fields.filter((field) => field.type === "select");
+  const selectFields = fields.filter((f) => f.type === "select");
   const groupField =
-    selectFields.find((field) => field.id === view?.config.groupFieldId) ?? selectFields[0] ?? null;
+    selectFields.find((f) => f.id === view?.config?.groupFieldId) ?? selectFields[0] ?? null;
 
   return (
-    <div className="px-6 py-8">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="mx-auto max-w-7xl px-4 py-8 space-y-6">
+      {/* Table Title & Actions */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/80 pb-4">
         <input
           value={name}
-          onChange={(event) => setName(event.target.value)}
+          onChange={(e) => setName(e.target.value)}
           onBlur={() => rename.mutate(name)}
-          className="min-w-40 flex-1 border-none bg-transparent font-display text-3xl font-bold tracking-tight outline-none"
+          className="min-w-48 flex-1 border-none bg-transparent font-display text-3xl font-bold tracking-tight text-foreground outline-none hover:bg-secondary/40 rounded px-1 transition-colors"
+          placeholder="Unbenannte Tabelle"
         />
-        <Button variant="ghost" size="sm" onClick={() => setFieldsOpen(true)}>
-          <Settings2 className="mr-2 h-4 w-4" /> Fields
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-destructive"
-          onClick={() => removeCollection.mutate()}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+
+        <div className="flex items-center gap-2">
+          {/* Quick Add Column Popover */}
+          <Popover open={newColOpen} onOpenChange={setNewColOpen}>
+            <PopoverTrigger asChild>
+              <Button size="sm" variant="outline" className="gap-1.5 text-xs">
+                <Plus className="h-3.5 w-3.5 text-accent" />
+                Spalte hinzufügen
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 space-y-3 p-4 bg-card border-border shadow-float">
+              <div className="font-display font-semibold text-sm">Neue Spalte erstellen</div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Spaltenname</Label>
+                <Input
+                  value={newColName}
+                  onChange={(e) => setNewColName(e.target.value)}
+                  placeholder="z. B. Priorität, Betrag, Datum"
+                  className="text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Datentyp</Label>
+                <Select value={newColType} onValueChange={(v) => setNewColType(v as FieldType)}>
+                  <SelectTrigger className="text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(FIELD_TYPE_CONFIG) as FieldType[]).map((type) => {
+                      const cfg = FIELD_TYPE_CONFIG[type];
+                      const Icon = cfg.icon;
+                      return (
+                        <SelectItem key={type} value={type} className="text-xs flex items-center gap-2">
+                          <Icon className="h-3.5 w-3.5 text-muted-foreground mr-1 inline" />
+                          {cfg.label}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {newColType === "select" && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Optionen (kommagetrennt)</Label>
+                  <Input
+                    value={newColChoices}
+                    onChange={(e) => setNewColChoices(e.target.value)}
+                    placeholder="Offen, In Arbeit, Erledigt"
+                    className="text-xs"
+                  />
+                </div>
+              )}
+
+              <Button
+                size="sm"
+                className="w-full text-xs"
+                onClick={() => {
+                  if (!newColName.trim()) return;
+                  addFieldMutation.mutate({
+                    name: newColName.trim(),
+                    type: newColType,
+                    choices:
+                      newColType === "select"
+                        ? newColChoices.split(",").map((s) => s.trim()).filter(Boolean)
+                        : undefined,
+                  });
+                }}
+              >
+                Spalte speichern
+              </Button>
+            </PopoverContent>
+          </Popover>
+
+          <Button variant="ghost" size="sm" onClick={() => setFieldsOpen(true)} className="text-xs">
+            <Settings2 className="mr-1.5 h-3.5 w-3.5" /> Spalten verwalten
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive text-xs hover:bg-destructive/10"
+            onClick={() => {
+              if (confirm("Möchtest du diese Tabelle wirklich unwiderruflich löschen?")) {
+                removeCollection.mutate();
+              }
+            }}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-2 border-b border-border pb-3">
-        {views.map((item) => {
-          const Icon = VIEW_ICONS[item.kind];
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveViewId(item.id)}
-              className={cn(
-                "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm hover:bg-muted",
-                view?.id === item.id && "bg-muted font-medium",
-              )}
+      {/* Toolbar: Views & Search Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
+        {/* View Switcher */}
+        <div className="flex items-center gap-1">
+          {views.map((item) => {
+            const Icon = VIEW_ICONS[item.kind] ?? Table2;
+            const isActive = view?.id === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveViewId(item.id)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {item.name}
+              </button>
+            );
+          })}
+
+          <div className="ml-2 flex items-center gap-1 border-l border-border pl-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs px-2 text-muted-foreground"
+              onClick={() => addView.mutate("table")}
             >
-              <Icon className="h-4 w-4 opacity-70" />
-              {item.name}
-            </button>
-          );
-        })}
-        <div className="ml-auto flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={() => addView.mutate("table")}>
-            <Table2 className="mr-1 h-4 w-4" /> Grid
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => addView.mutate("gallery")}>
-            <LayoutGrid className="mr-1 h-4 w-4" /> Gallery
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => addView.mutate("kanban")}>
-            <KanbanSquare className="mr-1 h-4 w-4" /> Board
-          </Button>
-          {view && views.length > 1 && (
-            <Button variant="ghost" size="sm" onClick={() => removeView.mutate(view.id)}>
-              <Trash2 className="h-4 w-4" />
+              + Tabelle
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs px-2 text-muted-foreground"
+              onClick={() => addView.mutate("gallery")}
+            >
+              + Galerie
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs px-2 text-muted-foreground"
+              onClick={() => addView.mutate("kanban")}
+            >
+              + Board
+            </Button>
+          </div>
+        </div>
+
+        {/* Real-time Search & Filter */}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tabelle durchsuchen..."
+              className="h-8 pl-8 pr-3 text-xs w-48 bg-card border-border"
+            />
+          </div>
+
+          {sortFieldId && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setSortFieldId(null);
+                toast.info("Sortierung zurückgesetzt");
+              }}
+              className="h-8 text-xs gap-1 text-muted-foreground"
+            >
+              Sortierung löschen
             </Button>
           )}
         </div>
       </div>
 
-      {view?.kind === "kanban" && selectFields.length > 1 && (
-        <div className="mt-4 flex items-center gap-2 text-sm">
-          <Columns3 className="h-4 w-4 opacity-60" />
-          <span className="text-muted-foreground">Group by</span>
-          <Select
-            value={groupField?.id ?? ""}
-            onValueChange={(value) =>
-              patchView.mutate({ id: view.id, patch: { config: { ...view.config, groupFieldId: value } } })
-            }
-          >
-            <SelectTrigger className="h-8 w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {selectFields.map((field) => (
-                <SelectItem key={field.id} value={field.id}>
-                  {field.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      <div className="mt-6">
+      {/* Main View Area */}
+      <div>
         {(!view || view.kind === "table") && (
-          <GridView
+          <EnhancedGridView
             fields={fields}
-            rows={rows}
+            rows={filteredAndSortedRows}
+            sortFieldId={sortFieldId}
+            sortOrder={sortOrder}
+            onSort={(fieldId) => {
+              if (sortFieldId === fieldId) {
+                setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+              } else {
+                setSortFieldId(fieldId);
+                setSortOrder("asc");
+              }
+            }}
             onChange={(row, data) => saveRow.mutate({ id: row.id, data })}
+            onDuplicate={(row) => duplicateRow.mutate(row)}
             onDelete={(row) => removeRow.mutate(row.id)}
-            onAdd={() => addRow.mutate({})}
+            onAddRow={() => addRow.mutate({})}
+            onAddColumn={() => setNewColOpen(true)}
+            onDeleteColumn={(fieldId) => removeFieldMutation.mutate(fieldId)}
           />
         )}
+
         {view?.kind === "gallery" && (
-          <GalleryView
+          <EnhancedGalleryView
             fields={fields}
-            rows={rows}
+            rows={filteredAndSortedRows}
             titleField={titleField}
             onChange={(row, data) => saveRow.mutate({ id: row.id, data })}
+            onDuplicate={(row) => duplicateRow.mutate(row)}
             onDelete={(row) => removeRow.mutate(row.id)}
             onAdd={() => addRow.mutate({})}
           />
         )}
+
         {view?.kind === "kanban" && (
-          <KanbanView
+          <EnhancedKanbanView
             fields={fields}
-            rows={rows}
+            rows={filteredAndSortedRows}
             titleField={titleField}
             groupField={groupField}
             onChange={(row, data) => saveRow.mutate({ id: row.id, data })}
@@ -285,6 +522,7 @@ function CollectionPage() {
         )}
       </div>
 
+      {/* Field Management Dialog */}
       <FieldsDialog
         open={fieldsOpen}
         onOpenChange={setFieldsOpen}
@@ -296,133 +534,382 @@ function CollectionPage() {
   );
 }
 
-/* ---------- cells ---------- */
+/* -------------------------------------------------------------
+ * ENHANCED GRID VIEW: High-performance Notion/Airtable style
+ * ------------------------------------------------------------- */
+function EnhancedGridView({
+  fields,
+  rows,
+  sortFieldId,
+  sortOrder,
+  onSort,
+  onChange,
+  onDuplicate,
+  onDelete,
+  onAddRow,
+  onAddColumn,
+  onDeleteColumn,
+}: {
+  fields: CollectionField[];
+  rows: CollectionRow[];
+  sortFieldId: string | null;
+  sortOrder: "asc" | "desc";
+  onSort: (fieldId: string) => void;
+  onChange: (row: CollectionRow, data: Record<string, unknown>) => void;
+  onDuplicate: (row: CollectionRow) => void;
+  onDelete: (row: CollectionRow) => void;
+  onAddRow: () => void;
+  onAddColumn: () => void;
+  onDeleteColumn: (fieldId: string) => void;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card shadow-panel overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[700px] border-collapse text-xs">
+          <thead>
+            <tr className="border-b border-border bg-secondary/40 font-medium text-muted-foreground select-none">
+              {/* Row index header */}
+              <th className="w-12 px-3 py-2.5 text-center font-mono text-[11px] border-r border-border/60">
+                #
+              </th>
 
-function CellEditor({
+              {/* Dynamic field headers */}
+              {fields.map((field) => {
+                const cfg = FIELD_TYPE_CONFIG[field.type] ?? FIELD_TYPE_CONFIG.text;
+                const Icon = cfg.icon;
+                const isSorted = sortFieldId === field.id;
+
+                return (
+                  <th
+                    key={field.id}
+                    className="px-3 py-2.5 text-left border-r border-border/60 min-w-[140px] hover:bg-secondary/70 transition-colors"
+                  >
+                    <div className="flex items-center justify-between group">
+                      <div
+                        className="flex items-center gap-1.5 cursor-pointer flex-1 truncate"
+                        onClick={() => onSort(field.id)}
+                      >
+                        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="font-semibold text-foreground truncate">{field.name}</span>
+                        {isSorted && (
+                          sortOrder === "asc" ? (
+                            <ArrowUpAZ className="h-3 w-3 text-accent" />
+                          ) : (
+                            <ArrowDownAZ className="h-3 w-3 text-accent" />
+                          )
+                        )}
+                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-secondary transition-opacity">
+                            <MoreHorizontal className="h-3 w-3 text-muted-foreground" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="text-xs w-44">
+                          <DropdownMenuItem onClick={() => onSort(field.id)}>
+                            {isSorted && sortOrder === "asc" ? (
+                              <ArrowDownAZ className="mr-2 h-3.5 w-3.5" />
+                            ) : (
+                              <ArrowUpAZ className="mr-2 h-3.5 w-3.5" />
+                            )}
+                            {isSorted && sortOrder === "asc" ? "Absteigend sortieren" : "Aufsteigend sortieren"}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => onDeleteColumn(field.id)}
+                          >
+                            <Trash2 className="mr-2 h-3.5 w-3.5" /> Spalte löschen
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </th>
+                );
+              })}
+
+              {/* Add column header button */}
+              <th className="w-16 px-2 py-2.5 text-center">
+                <button
+                  onClick={onAddColumn}
+                  className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground font-medium px-2 py-0.5 rounded hover:bg-secondary transition-colors"
+                  title="Spalte hinzufügen"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={fields.length + 2}
+                  className="px-6 py-12 text-center text-sm text-muted-foreground"
+                >
+                  Noch keine Zeilen vorhanden. Klicke unten auf „Zeile hinzufügen“.
+                </td>
+              </tr>
+            ) : (
+              rows.map((row, index) => (
+                <tr
+                  key={row.id}
+                  className="border-b border-border/60 hover:bg-secondary/20 transition-colors group"
+                >
+                  {/* Row index & hover actions */}
+                  <td className="px-2 py-1.5 text-center font-mono text-[11px] text-muted-foreground border-r border-border/60">
+                    <div className="group-hover:hidden">{index + 1}</div>
+                    <div className="hidden group-hover:flex items-center justify-center gap-1">
+                      <button
+                        onClick={() => onDuplicate(row)}
+                        title="Duplizieren"
+                        className="p-0.5 rounded text-muted-foreground hover:text-foreground"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(row)}
+                        title="Löschen"
+                        className="p-0.5 rounded text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </td>
+
+                  {/* Field cell editors */}
+                  {fields.map((field) => (
+                    <td
+                      key={field.id}
+                      className="px-2 py-1 border-r border-border/60 align-middle"
+                    >
+                      <EnhancedCellEditor
+                        field={field}
+                        value={row.data[field.id]}
+                        onCommit={(val) => onChange(row, { ...row.data, [field.id]: val })}
+                      />
+                    </td>
+                  ))}
+
+                  {/* Actions column */}
+                  <td className="px-2 text-center">
+                    <button
+                      onClick={() => onDelete(row)}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition-opacity"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+
+          {/* Table Summary Footer */}
+          {rows.length > 0 && (
+            <tfoot>
+              <tr className="border-t border-border bg-secondary/30 font-mono text-[11px] text-muted-foreground">
+                <td className="px-3 py-2 text-center border-r border-border/60 font-semibold">
+                  ∑
+                </td>
+                {fields.map((field) => {
+                  let summary = "";
+                  if (field.type === "number") {
+                    const sum = rows.reduce(
+                      (acc, r) => acc + (Number(r.data[field.id]) || 0),
+                      0
+                    );
+                    summary = `Summe: ${sum.toLocaleString("de-DE")}`;
+                  } else if (field.type === "checkbox") {
+                    const checked = rows.filter((r) => r.data[field.id] === true).length;
+                    summary = `${checked} / ${rows.length} ✓`;
+                  } else if (fields[0]?.id === field.id) {
+                    summary = `${rows.length} Zeilen`;
+                  }
+
+                  return (
+                    <td key={field.id} className="px-3 py-2 border-r border-border/60">
+                      {summary}
+                    </td>
+                  );
+                })}
+                <td />
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
+
+      {/* Add Row Button Footer */}
+      <button
+        onClick={onAddRow}
+        className="flex w-full items-center gap-2 border-t border-border px-4 py-2.5 text-xs font-medium text-muted-foreground hover:bg-secondary/40 hover:text-foreground transition-colors"
+      >
+        <Plus className="h-4 w-4 text-accent" />
+        <span>Neue Zeile hinzufügen</span>
+      </button>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------
+ * CELL EDITORS: Inline editable with color pills & fast input
+ * ------------------------------------------------------------- */
+function EnhancedCellEditor({
   field,
   value,
   onCommit,
 }: {
   field: CollectionField;
   value: unknown;
-  onCommit: (value: unknown) => void;
+  onCommit: (val: unknown) => void;
 }) {
   const [draft, setDraft] = useState(value === undefined || value === null ? "" : String(value));
+  const [newOption, setNewOption] = useState("");
 
   useEffect(() => {
     setDraft(value === undefined || value === null ? "" : String(value));
   }, [value]);
 
+  // Checkbox field
   if (field.type === "checkbox") {
     return (
-      <Checkbox checked={value === true} onCheckedChange={(checked) => onCommit(checked === true)} />
+      <div className="flex items-center justify-center py-1">
+        <Checkbox
+          checked={value === true}
+          onCheckedChange={(checked) => onCommit(checked === true)}
+        />
+      </div>
     );
   }
 
+  // Select / Status field
   if (field.type === "select") {
-    const choices = field.options.choices ?? [];
+    const choices = field.options.choices ?? ["Offen", "In Arbeit", "Erledigt"];
+    const current = value ? String(value) : "";
+
+    const getPillColor = (choice: string) => {
+      const lower = choice.toLowerCase();
+      if (lower.includes("erledigt") || lower.includes("done"))
+        return "bg-emerald-500/10 text-emerald-800 border-emerald-500/30";
+      if (lower.includes("arbeit") || lower.includes("doing") || lower.includes("progress"))
+        return "bg-amber-500/10 text-amber-800 border-amber-500/30";
+      if (lower.includes("offen") || lower.includes("todo"))
+        return "bg-secondary text-muted-foreground border-border";
+      return "bg-accent/10 text-accent border-accent/30";
+    };
+
     return (
-      <Select value={value ? String(value) : ""} onValueChange={(next) => onCommit(next)}>
-        <SelectTrigger className="h-8 border-none bg-transparent shadow-none">
-          <SelectValue placeholder="—" />
+      <Select value={current} onValueChange={(next) => onCommit(next)}>
+        <SelectTrigger className="h-7 border-none bg-transparent shadow-none p-0 text-xs">
+          {current ? (
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-medium border ${getPillColor(
+                current
+              )}`}
+            >
+              {current}
+            </span>
+          ) : (
+            <span className="text-muted-foreground opacity-50">—</span>
+          )}
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="text-xs">
           {choices.map((choice) => (
-            <SelectItem key={choice} value={choice}>
-              {choice}
+            <SelectItem key={choice} value={choice} className="text-xs">
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-medium border ${getPillColor(
+                  choice
+                )}`}
+              >
+                {choice}
+              </span>
             </SelectItem>
           ))}
+          <div className="border-t border-border pt-2 mt-1 px-2 flex gap-1">
+            <Input
+              value={newOption}
+              onChange={(e) => setNewOption(e.target.value)}
+              placeholder="Neu..."
+              className="h-6 text-[10px]"
+            />
+            <Button
+              size="sm"
+              className="h-6 px-1.5 text-[10px]"
+              onClick={() => {
+                if (newOption.trim()) {
+                  onCommit(newOption.trim());
+                  setNewOption("");
+                }
+              }}
+            >
+              +
+            </Button>
+          </div>
         </SelectContent>
       </Select>
     );
   }
 
+  // URL / Link field
+  if (field.type === "url") {
+    return (
+      <div className="flex items-center gap-1">
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={() => onCommit(draft)}
+          placeholder="https://..."
+          className="w-full bg-transparent px-1 py-1 text-xs outline-none hover:bg-secondary/40 rounded truncate"
+        />
+        {draft && (
+          <a
+            href={draft.startsWith("http") ? draft : `https://${draft}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-muted-foreground hover:text-accent p-0.5 shrink-0"
+          >
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  // Number / Date / Text fields
   return (
     <input
       value={draft}
       type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
-      onChange={(event) => setDraft(event.target.value)}
+      onChange={(e) => setDraft(e.target.value)}
       onBlur={() =>
         onCommit(field.type === "number" ? (draft === "" ? null : Number(draft)) : draft)
       }
-      className="w-full bg-transparent px-1 py-1 text-sm outline-none"
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.currentTarget.blur();
+        }
+      }}
+      className={cn(
+        "w-full bg-transparent px-1.5 py-1 text-xs outline-none hover:bg-secondary/40 focus:bg-background focus:ring-1 focus:ring-accent rounded transition-colors",
+        field.type === "number" && "text-right font-mono"
+      )}
+      placeholder="—"
     />
   );
 }
 
-function GridView({
-  fields,
-  rows,
-  onChange,
-  onDelete,
-  onAdd,
-}: {
-  fields: CollectionField[];
-  rows: CollectionRow[];
-  onChange: (row: CollectionRow, data: Record<string, unknown>) => void;
-  onDelete: (row: CollectionRow) => void;
-  onAdd: () => void;
-}) {
-  return (
-    <div className="panel overflow-x-auto">
-      <table className="w-full min-w-[640px] border-collapse text-sm">
-        <thead>
-          <tr className="border-b border-border bg-muted/50">
-            {fields.map((field) => (
-              <th key={field.id} className="px-3 py-2 text-left font-medium">
-                {field.name}
-              </th>
-            ))}
-            <th className="w-10" />
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length === 0 && (
-            <tr>
-              <td colSpan={fields.length + 1} className="px-3 py-6 text-muted-foreground">
-                No records yet.
-              </td>
-            </tr>
-          )}
-          {rows.map((row) => (
-            <tr key={row.id} className="border-b border-border last:border-0 hover:bg-muted/30">
-              {fields.map((field) => (
-                <td key={field.id} className="px-2 py-1 align-middle">
-                  <CellEditor
-                    field={field}
-                    value={row.data[field.id]}
-                    onCommit={(value) => onChange(row, { ...row.data, [field.id]: value })}
-                  />
-                </td>
-              ))}
-              <td className="px-2">
-                <button
-                  aria-label="Delete record"
-                  className="rounded p-1 text-muted-foreground hover:text-destructive"
-                  onClick={() => onDelete(row)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <button
-        onClick={onAdd}
-        className="flex w-full items-center gap-2 border-t border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted/40"
-      >
-        <Plus className="h-4 w-4" /> New record
-      </button>
-    </div>
-  );
-}
-
-function GalleryView({
+/* -------------------------------------------------------------
+ * GALLERY VIEW (Bookmory / Notion Card Deck)
+ * ------------------------------------------------------------- */
+function EnhancedGalleryView({
   fields,
   rows,
   titleField,
   onChange,
+  onDuplicate,
   onDelete,
   onAdd,
 }: {
@@ -430,54 +917,75 @@ function GalleryView({
   rows: CollectionRow[];
   titleField: CollectionField | null;
   onChange: (row: CollectionRow, data: Record<string, unknown>) => void;
+  onDuplicate: (row: CollectionRow) => void;
   onDelete: (row: CollectionRow) => void;
   onAdd: () => void;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {rows.map((row) => (
-        <div key={row.id} className="panel p-4">
-          <div className="flex items-start justify-between gap-2">
-            <span className="font-medium">
-              {titleField ? String(row.data[titleField.id] ?? "Untitled") : "Untitled"}
-            </span>
-            <button
-              aria-label="Delete record"
-              className="rounded p-1 text-muted-foreground hover:text-destructive"
-              onClick={() => onDelete(row)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="mt-3 space-y-2">
-            {fields.slice(1).map((field) => (
-              <div key={field.id} className="flex items-center gap-2">
-                <span className="w-24 shrink-0 text-xs uppercase tracking-wide text-muted-foreground">
-                  {field.name}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <CellEditor
-                    field={field}
-                    value={row.data[field.id]}
-                    onCommit={(value) => onChange(row, { ...row.data, [field.id]: value })}
-                  />
-                </div>
+        <div
+          key={row.id}
+          className="rounded-xl border border-border bg-card p-4 shadow-panel hover:border-border/80 transition-all flex flex-col justify-between"
+        >
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-2 border-b border-border/50 pb-2">
+              <span className="font-display font-semibold text-sm text-foreground">
+                {titleField ? String(row.data[titleField.id] ?? "Ohne Titel") : "Ohne Titel"}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => onDuplicate(row)}
+                  title="Duplizieren"
+                  className="p-1 rounded text-muted-foreground hover:text-foreground"
+                >
+                  <Copy className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={() => onDelete(row)}
+                  title="Löschen"
+                  className="p-1 rounded text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
               </div>
-            ))}
+            </div>
+
+            <div className="space-y-2">
+              {fields.slice(1).map((field) => (
+                <div key={field.id} className="flex items-center justify-between text-xs">
+                  <span className="text-[11px] font-mono text-muted-foreground uppercase">
+                    {field.name}
+                  </span>
+                  <div className="min-w-0 max-w-[60%]">
+                    <EnhancedCellEditor
+                      field={field}
+                      value={row.data[field.id]}
+                      onCommit={(val) => onChange(row, { ...row.data, [field.id]: val })}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ))}
+
       <button
         onClick={onAdd}
-        className="flex min-h-32 items-center justify-center gap-2 rounded-lg border border-dashed border-border text-sm text-muted-foreground hover:bg-muted/40"
+        className="flex min-h-36 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-secondary/10 p-4 text-xs font-medium text-muted-foreground hover:bg-secondary/30 transition-colors"
       >
-        <Plus className="h-4 w-4" /> New record
+        <Plus className="h-5 w-5 text-accent" />
+        <span>Neuen Eintrag hinzufügen</span>
       </button>
     </div>
   );
 }
 
-function KanbanView({
+/* -------------------------------------------------------------
+ * KANBAN BOARD VIEW (Grouped by Select/Status)
+ * ------------------------------------------------------------- */
+function EnhancedKanbanView({
   fields,
   rows,
   titleField,
@@ -493,80 +1001,77 @@ function KanbanView({
   onAdd: (seed: Record<string, unknown>) => void;
 }) {
   const columns = useMemo(() => {
-    const choices = groupField?.options.choices ?? [];
-    return [...choices, "No status"];
+    const choices = groupField?.options.choices ?? ["Offen", "In Arbeit", "Erledigt"];
+    return [...choices, "Ohne Status"];
   }, [groupField]);
 
   if (!groupField) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Add a select field in “Fields” to group records on a board.
-      </p>
+      <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+        Füge ein Auswahl-Feld (z. B. „Status“) hinzu, um Einträge auf einem Board nach Spalten zu gruppieren.
+      </div>
     );
   }
 
   return (
     <div className="flex gap-4 overflow-x-auto pb-4">
       {columns.map((column) => {
-        const isCatchAll = column === "No status";
+        const isCatchAll = column === "Ohne Status";
         const columnRows = rows.filter((row) => {
           const value = row.data[groupField.id];
           return isCatchAll
             ? !value || !(groupField.options.choices ?? []).includes(String(value))
             : value === column;
         });
+
         return (
-          <div key={column} className="w-72 shrink-0">
-            <div className="mb-2 flex items-center justify-between px-1">
-              <span className="text-sm font-semibold">{column}</span>
-              <span className="text-xs text-muted-foreground">{columnRows.length}</span>
-            </div>
-            <div className="space-y-2">
-              {columnRows.map((row) => (
-                <div key={row.id} className="panel p-3">
-                  <span className="font-medium">
-                    {titleField ? String(row.data[titleField.id] ?? "Untitled") : "Untitled"}
-                  </span>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {(groupField.options.choices ?? []).map((choice) => (
-                      <button
-                        key={choice}
-                        onClick={() => onChange(row, { ...row.data, [groupField.id]: choice })}
-                        className={cn(
-                          "rounded-full border border-border px-2 py-0.5 text-xs hover:bg-muted",
-                          row.data[groupField.id] === choice && "bg-accent/20 border-accent",
-                        )}
-                      >
-                        {choice}
-                      </button>
-                    ))}
-                  </div>
-                  {fields
-                    .filter((field) => field.id !== groupField.id && field.id !== titleField?.id)
-                    .slice(0, 2)
-                    .map((field) => (
-                      <div key={field.id} className="mt-2 flex items-center gap-2">
-                        <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                          {field.name}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <CellEditor
-                            field={field}
-                            value={row.data[field.id]}
-                            onCommit={(value) => onChange(row, { ...row.data, [field.id]: value })}
-                          />
+          <div key={column} className="w-72 shrink-0 rounded-xl border border-border bg-secondary/20 p-3 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <span className="font-display font-semibold text-xs text-foreground uppercase tracking-wider">
+                  {column}
+                </span>
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                  {columnRows.length}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {columnRows.map((row) => (
+                  <div
+                    key={row.id}
+                    className="rounded-lg border border-border bg-card p-3 shadow-panel space-y-2"
+                  >
+                    <span className="font-medium text-xs text-foreground block">
+                      {titleField ? String(row.data[titleField.id] ?? "Ohne Titel") : "Ohne Titel"}
+                    </span>
+
+                    {fields
+                      .filter((f) => f.id !== groupField.id && f.id !== titleField?.id)
+                      .slice(0, 2)
+                      .map((field) => (
+                        <div key={field.id} className="flex items-center justify-between text-[11px]">
+                          <span className="text-muted-foreground font-mono">{field.name}</span>
+                          <div className="min-w-0 max-w-[60%]">
+                            <EnhancedCellEditor
+                              field={field}
+                              value={row.data[field.id]}
+                              onCommit={(val) => onChange(row, { ...row.data, [field.id]: val })}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                </div>
-              ))}
-              <button
-                onClick={() => onAdd(isCatchAll ? {} : { [groupField.id]: column })}
-                className="flex w-full items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted/40"
-              >
-                <Plus className="h-4 w-4" /> Add
-              </button>
+                      ))}
+                  </div>
+                ))}
+              </div>
             </div>
+
+            <button
+              onClick={() => onAdd(isCatchAll ? {} : { [groupField.id]: column })}
+              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2 text-xs text-muted-foreground hover:bg-card hover:text-foreground transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" /> Karte hinzufügen
+            </button>
           </div>
         );
       })}
@@ -574,6 +1079,9 @@ function KanbanView({
   );
 }
 
+/* -------------------------------------------------------------
+ * FIELDS MANAGEMENT DIALOG
+ * ------------------------------------------------------------- */
 function FieldsDialog({
   open,
   onOpenChange,
@@ -589,27 +1097,24 @@ function FieldsDialog({
 }) {
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState<FieldType>("text");
-  const [newChoices, setNewChoices] = useState("Todo, Doing, Done");
+  const [newChoices, setNewChoices] = useState("Offen, In Arbeit, Erledigt");
 
   const add = useMutation({
     mutationFn: () =>
       createField({
         collectionId,
-        name: newName.trim() || "Field",
+        name: newName.trim() || "Spalte",
         type: newType,
         position: fields.length,
-        ...(newType === "select"
-          ? {
-              choices: newChoices
-                .split(",")
-                .map((choice) => choice.trim())
-                .filter(Boolean),
-            }
-          : {}),
+        choices:
+          newType === "select"
+            ? newChoices.split(",").map((c) => c.trim()).filter(Boolean)
+            : undefined,
       }),
     onSuccess: () => {
       setNewName("");
       onChanged();
+      toast.success("Spalte erstellt");
     },
   });
 
@@ -621,70 +1126,88 @@ function FieldsDialog({
 
   const remove = useMutation({
     mutationFn: (id: string) => deleteField(id),
-    onSuccess: onChanged,
+    onSuccess: () => {
+      onChanged();
+      toast.info("Spalte gelöscht");
+    },
   });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <h2 className="text-lg font-semibold">Fields</h2>
+      <DialogContent className="max-w-md bg-card border-border shadow-float">
+        <DialogHeader>
+          <DialogTitle className="font-display text-lg font-semibold">Spalten verwalten</DialogTitle>
+        </DialogHeader>
 
-        <div className="space-y-2">
-          {fields.map((field) => (
-            <div key={field.id} className="flex items-center gap-2">
-              <Input
-                defaultValue={field.name}
-                onBlur={(event) =>
-                  event.target.value !== field.name &&
-                  patch.mutate({ id: field.id, patch: { name: event.target.value } })
-                }
-              />
-              <span className="w-20 shrink-0 text-xs uppercase text-muted-foreground">
-                {field.type}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive"
-                onClick={() => remove.mutate(field.id)}
+        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+          {fields.map((field) => {
+            const cfg = FIELD_TYPE_CONFIG[field.type] ?? FIELD_TYPE_CONFIG.text;
+            const Icon = cfg.icon;
+
+            return (
+              <div
+                key={field.id}
+                className="flex items-center gap-2 rounded-lg border border-border p-2 bg-secondary/20"
               >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Input
+                  defaultValue={field.name}
+                  onBlur={(e) =>
+                    e.target.value !== field.name &&
+                    patch.mutate({ id: field.id, patch: { name: e.target.value } })
+                  }
+                  className="h-7 text-xs bg-transparent border-none"
+                />
+                <span className="text-[10px] font-mono uppercase bg-secondary px-1.5 py-0.5 rounded text-muted-foreground shrink-0">
+                  {cfg.label}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive shrink-0"
+                  onClick={() => remove.mutate(field.id)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            );
+          })}
         </div>
 
-        <div className="mt-4 space-y-3 border-t border-border pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="field-name">New field</Label>
+        <div className="border-t border-border pt-4 space-y-3">
+          <div className="font-display font-medium text-xs text-foreground">Neue Spalte anlegen</div>
+          <div className="grid gap-2 sm:grid-cols-2">
             <Input
-              id="field-name"
-              placeholder="Field name"
+              placeholder="Name der Spalte"
               value={newName}
-              onChange={(event) => setNewName(event.target.value)}
+              onChange={(e) => setNewName(e.target.value)}
+              className="text-xs"
             />
+            <Select value={newType} onValueChange={(val) => setNewType(val as FieldType)}>
+              <SelectTrigger className="text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(FIELD_TYPE_CONFIG) as FieldType[]).map((type) => (
+                  <SelectItem key={type} value={type} className="text-xs">
+                    {FIELD_TYPE_CONFIG[type].label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={newType} onValueChange={(value) => setNewType(value as FieldType)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FIELD_TYPES.map((type) => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
           {newType === "select" && (
             <Input
-              placeholder="Choices, comma separated"
+              placeholder="Optionen (kommagetrennt)"
               value={newChoices}
-              onChange={(event) => setNewChoices(event.target.value)}
+              onChange={(e) => setNewChoices(e.target.value)}
+              className="text-xs"
             />
           )}
-          <Button onClick={() => add.mutate()} className="w-full">
-            <Plus className="mr-2 h-4 w-4" /> Add field
+
+          <Button onClick={() => add.mutate()} size="sm" className="w-full text-xs gap-1.5">
+            <Plus className="h-3.5 w-3.5" /> Spalte hinzufügen
           </Button>
         </div>
       </DialogContent>
