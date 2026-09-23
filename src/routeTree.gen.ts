@@ -17,6 +17,10 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppHealthRouteImport } from './routes/_authenticated/app.health'
+import { Route as AuthenticatedAppLearnRouteImport } from './routes/_authenticated/app.learn'
+import { Route as AuthenticatedAppPlanRouteImport } from './routes/_authenticated/app.plan'
+import { Route as AuthenticatedAppStudioRouteImport } from './routes/_authenticated/app.studio'
 import { Route as AuthenticatedAppTrashRouteImport } from './routes/_authenticated/app.trash'
 import { Route as AuthenticatedAppDocDocIdRouteImport } from './routes/_authenticated/app.doc.$docId'
 import { Route as AuthenticatedAppTableTableIdRouteImport } from './routes/_authenticated/app.table.$tableId'
@@ -61,6 +65,26 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppHealthRoute = AuthenticatedAppHealthRouteImport.update({
+  id: '/health',
+  path: '/health',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppLearnRoute = AuthenticatedAppLearnRouteImport.update({
+  id: '/learn',
+  path: '/learn',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppPlanRoute = AuthenticatedAppPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppStudioRoute = AuthenticatedAppStudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppTrashRoute = AuthenticatedAppTrashRouteImport.update({
   id: '/trash',
   path: '/trash',
@@ -86,6 +110,10 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/app/health': typeof AuthenticatedAppHealthRoute
+  '/app/learn': typeof AuthenticatedAppLearnRoute
+  '/app/plan': typeof AuthenticatedAppPlanRoute
+  '/app/studio': typeof AuthenticatedAppStudioRoute
   '/app/trash': typeof AuthenticatedAppTrashRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/doc/$docId': typeof AuthenticatedAppDocDocIdRoute
@@ -97,6 +125,10 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/app/health': typeof AuthenticatedAppHealthRoute
+  '/app/learn': typeof AuthenticatedAppLearnRoute
+  '/app/plan': typeof AuthenticatedAppPlanRoute
+  '/app/studio': typeof AuthenticatedAppStudioRoute
   '/app/trash': typeof AuthenticatedAppTrashRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/doc/$docId': typeof AuthenticatedAppDocDocIdRoute
@@ -111,6 +143,10 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/_authenticated/app/health': typeof AuthenticatedAppHealthRoute
+  '/_authenticated/app/learn': typeof AuthenticatedAppLearnRoute
+  '/_authenticated/app/plan': typeof AuthenticatedAppPlanRoute
+  '/_authenticated/app/studio': typeof AuthenticatedAppStudioRoute
   '/_authenticated/app/trash': typeof AuthenticatedAppTrashRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/doc/$docId': typeof AuthenticatedAppDocDocIdRoute
@@ -125,6 +161,10 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/app'
     | '/.lovable/oauth/consent'
+    | '/app/health'
+    | '/app/learn'
+    | '/app/plan'
+    | '/app/studio'
     | '/app/trash'
     | '/app/'
     | '/app/doc/$docId'
@@ -136,6 +176,10 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/.well-known/oauth-protected-resource'
     | '/.lovable/oauth/consent'
+    | '/app/health'
+    | '/app/learn'
+    | '/app/plan'
+    | '/app/studio'
     | '/app/trash'
     | '/app'
     | '/app/doc/$docId'
@@ -149,6 +193,10 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/app'
     | '/.lovable/oauth/consent'
+    | '/_authenticated/app/health'
+    | '/_authenticated/app/learn'
+    | '/_authenticated/app/plan'
+    | '/_authenticated/app/studio'
     | '/_authenticated/app/trash'
     | '/_authenticated/app/'
     | '/_authenticated/app/doc/$docId'
@@ -222,6 +270,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/health': {
+      id: '/_authenticated/app/health'
+      path: '/health'
+      fullPath: '/app/health'
+      preLoaderRoute: typeof AuthenticatedAppHealthRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/learn': {
+      id: '/_authenticated/app/learn'
+      path: '/learn'
+      fullPath: '/app/learn'
+      preLoaderRoute: typeof AuthenticatedAppLearnRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/plan': {
+      id: '/_authenticated/app/plan'
+      path: '/plan'
+      fullPath: '/app/plan'
+      preLoaderRoute: typeof AuthenticatedAppPlanRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/studio': {
+      id: '/_authenticated/app/studio'
+      path: '/studio'
+      fullPath: '/app/studio'
+      preLoaderRoute: typeof AuthenticatedAppStudioRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/trash': {
       id: '/_authenticated/app/trash'
       path: '/trash'
@@ -247,6 +323,10 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppHealthRoute: typeof AuthenticatedAppHealthRoute
+  AuthenticatedAppLearnRoute: typeof AuthenticatedAppLearnRoute
+  AuthenticatedAppPlanRoute: typeof AuthenticatedAppPlanRoute
+  AuthenticatedAppStudioRoute: typeof AuthenticatedAppStudioRoute
   AuthenticatedAppTrashRoute: typeof AuthenticatedAppTrashRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
   AuthenticatedAppDocDocIdRoute: typeof AuthenticatedAppDocDocIdRoute
@@ -254,6 +334,10 @@ interface AuthenticatedAppRouteChildren {
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppHealthRoute: AuthenticatedAppHealthRoute,
+  AuthenticatedAppLearnRoute: AuthenticatedAppLearnRoute,
+  AuthenticatedAppPlanRoute: AuthenticatedAppPlanRoute,
+  AuthenticatedAppStudioRoute: AuthenticatedAppStudioRoute,
   AuthenticatedAppTrashRoute: AuthenticatedAppTrashRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
   AuthenticatedAppDocDocIdRoute: AuthenticatedAppDocDocIdRoute,

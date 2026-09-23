@@ -82,15 +82,32 @@ function AuthPage() {
   }
 
   async function handleGoogle() {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error("Google sign-in failed");
-      return;
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/app`,
+        },
+      });
+
+      if (error) {
+        // Fallback to lovable OAuth
+        const result = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: `${window.location.origin}/app`,
+        });
+        if (result.error) {
+          toast.error("Google sign-in failed: " + (error.message || result.error));
+          return;
+        }
+        if (result.redirected) return;
+        navigate({ to: "/app" });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Google Anmeldung fehlgeschlagen.");
+    } finally {
+      setBusy(false);
     }
-    if (result.redirected) return;
-    navigate({ to: "/app" });
   }
 
   return (

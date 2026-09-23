@@ -2,9 +2,13 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
+  BookOpen,
+  Brain,
+  Calendar,
   ChevronDown,
   Database,
   FileText,
+  Heart,
   LogOut,
   Plus,
   Search,
@@ -182,14 +186,41 @@ function WorkspaceLayout() {
             onClick={() => setPaletteOpen(true)}
             className="mt-2 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-sidebar-accent"
           >
-            <Search className="h-4 w-4" /> Search
+            <Search className="h-4 w-4" /> Suchen
             <span className="ml-auto text-xs opacity-60">⌘K</span>
           </button>
         </div>
 
         <nav className="mt-4 flex-1 space-y-6 overflow-y-auto px-3 pb-6">
+          <Section title="Fokus & Module">
+            <SidebarLink
+              to="/app/plan"
+              active={pathname === "/app/plan"}
+              icon={<Calendar className="h-4 w-4 text-accent" />}
+              label="Tagesplan & Kalender"
+            />
+            <SidebarLink
+              to="/app/health"
+              active={pathname === "/app/health"}
+              icon={<Heart className="h-4 w-4 text-emerald-600" />}
+              label="Gesundheit & Bio"
+            />
+            <SidebarLink
+              to="/app/studio"
+              active={pathname === "/app/studio"}
+              icon={<BookOpen className="h-4 w-4 text-amber-600" />}
+              label="Studio & Bücher"
+            />
+            <SidebarLink
+              to="/app/learn"
+              active={pathname === "/app/learn"}
+              icon={<Brain className="h-4 w-4 text-purple-600" />}
+              label="Wissen & Recall"
+            />
+          </Section>
+
           {favorites.length > 0 && (
-            <Section title="Favourites">
+            <Section title="Favoriten">
               {favorites.map((doc) => (
                 <SidebarLink
                   key={doc.id}
@@ -204,10 +235,10 @@ function WorkspaceLayout() {
           )}
 
           <Section
-            title="Pages"
+            title="Seiten"
             action={
               <button
-                aria-label="New page"
+                aria-label="Neue Seite"
                 className="rounded p-1 hover:bg-sidebar-accent"
                 onClick={() => newDoc.mutate()}
               >
@@ -215,7 +246,7 @@ function WorkspaceLayout() {
               </button>
             }
           >
-            {rootDocs.length === 0 && <EmptyHint text="No pages yet" />}
+            {rootDocs.length === 0 && <EmptyHint text="Noch keine Seiten" />}
             {rootDocs.map((doc) => (
               <div key={doc.id}>
                 <SidebarLink
@@ -244,10 +275,10 @@ function WorkspaceLayout() {
           </Section>
 
           <Section
-            title="Tables"
+            title="Tabellen"
             action={
               <button
-                aria-label="New table"
+                aria-label="Neue Tabelle"
                 className="rounded p-1 hover:bg-sidebar-accent"
                 onClick={() => newTable.mutate()}
               >
@@ -255,7 +286,7 @@ function WorkspaceLayout() {
               </button>
             }
           >
-            {collections.length === 0 && <EmptyHint text="No tables yet" />}
+            {collections.length === 0 && <EmptyHint text="Noch keine Tabellen" />}
             {collections.map((collection) => (
               <SidebarLink
                 key={collection.id}
@@ -268,19 +299,19 @@ function WorkspaceLayout() {
             ))}
           </Section>
 
-          <Section title="More">
+          <Section title="System">
             <SidebarLink
               to="/app/trash"
               active={pathname.endsWith("/trash")}
               icon={<Trash2 className="h-4 w-4 opacity-70" />}
-              label="Trash"
+              label="Papierkorb"
             />
           </Section>
         </nav>
 
         <div className="border-t border-sidebar-border p-3">
           <Button variant="ghost" className="w-full justify-start" onClick={signOut}>
-            <LogOut className="mr-2 h-4 w-4" /> Sign out
+            <LogOut className="mr-2 h-4 w-4" /> Abmelden
           </Button>
         </div>
       </aside>
