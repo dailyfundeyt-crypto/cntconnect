@@ -55,7 +55,7 @@ interface HealthState {
   checkedErgonomics: Record<string, boolean>;
 }
 
-export function HealthPage() {
+function HealthPage() {
   const [todayStr] = useState<string>(
     new Date().toLocaleDateString("de-DE", {
       weekday: "long",

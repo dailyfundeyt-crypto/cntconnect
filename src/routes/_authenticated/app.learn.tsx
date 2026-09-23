@@ -138,7 +138,7 @@ Bi-direktionale Verlinkung:
   },
 ];
 
-export function LearnPage() {
+function LearnPage() {
   const [activeTab, setActiveTab] = useState<"notebook" | "recall" | "sources">("notebook");
 
   // Sources State

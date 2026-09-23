@@ -71,7 +71,7 @@ export interface BookItem {
   quotes: string[];
 }
 
-export function StudioPage() {
+function StudioPage() {
   const [activeTab, setActiveTab] = useState<"books" | "youtube" | "scriptwriter" | "xcapture">("books");
 
   /* ---------- 1. BOOKS & READING SESSION (BOOKMORY / BOCKREADER) ---------- */
