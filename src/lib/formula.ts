@@ -28,7 +28,7 @@ export function columnIndex(label: string): number {
   return index - 1;
 }
 
-export function isFormula(raw: unknown): raw is string {
+export function isFormula(raw: unknown): raw is `=${string}` {
   return typeof raw === "string" && raw.trimStart().startsWith("=") && raw.trim().length > 1;
 }
 

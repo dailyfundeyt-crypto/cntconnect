@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Copy, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ export type DataGridProps = {
   onAddRow: () => void;
   onAddRows: (count: number) => Promise<void> | void;
   onDeleteRow: (rowId: string) => void;
+  onDuplicateRow?: (rowId: string) => void;
   onRenameField: (fieldId: string, name: string) => void;
   onChangeFieldType: (fieldId: string, type: FieldType) => void;
   onAddField: () => void;
@@ -38,12 +39,23 @@ type Cursor = { r: number; c: number };
 
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
+  { value: "number", label: "Zahl" },
   { value: "checkbox", label: "Checkbox" },
-  { value: "select", label: "Select" },
-  { value: "date", label: "Date" },
-  { value: "url", label: "Link" },
+  { value: "select", label: "Auswahl / Status" },
+  { value: "date", label: "Datum" },
+  { value: "url", label: "Link / URL" },
 ];
+
+function getPillColor(choice: string) {
+  const lower = choice.toLowerCase();
+  if (lower.includes("erledigt") || lower.includes("done") || lower.includes("abgeschlossen"))
+    return "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30";
+  if (lower.includes("arbeit") || lower.includes("doing") || lower.includes("progress"))
+    return "bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30";
+  if (lower.includes("offen") || lower.includes("todo") || lower.includes("warten"))
+    return "bg-secondary text-muted-foreground border-border";
+  return "bg-accent/15 text-accent-foreground border-accent/30";
+}
 
 function rawToInput(raw: unknown): string {
   if (raw === null || raw === undefined) return "";
@@ -71,6 +83,7 @@ export function DataGrid({
   onAddRow,
   onAddRows,
   onDeleteRow,
+  onDuplicateRow,
   onRenameField,
   onChangeFieldType,
   onAddField,
@@ -193,9 +206,9 @@ export function DataGrid({
     }
     try {
       await navigator.clipboard.writeText(lines.join("\n"));
-      toast.success("Copied");
+      toast.success("In die Zwischenablage kopiert");
     } catch {
-      toast.error("Clipboard is not available");
+      toast.error("Zwischenablage nicht verfügbar");
     }
   };
 
@@ -204,7 +217,7 @@ export function DataGrid({
     try {
       text = await navigator.clipboard.readText();
     } catch {
-      toast.error("Clipboard is not available");
+      toast.error("Zwischenablage nicht verfügbar");
       return;
     }
     if (!text) return;
@@ -217,7 +230,7 @@ export function DataGrid({
     const needed = safeCursor.r + matrix.length - rows.length;
     if (needed > 0) {
       await onAddRows(needed);
-      toast.info(`${needed} new record${needed > 1 ? "s" : ""} added — paste again to fill them`);
+      toast.info(`${needed} neue ${needed === 1 ? "Zeile" : "Zeilen"} hinzugefügt — erneut einfügen`);
       return;
     }
 
@@ -329,7 +342,7 @@ export function DataGrid({
         <span className="text-muted-foreground">ƒx</span>
         <input
           value={formulaDraft ?? rawToInput(activeRaw)}
-          placeholder="Value or =SUM(A1:A5)"
+          placeholder="Wert eingeben oder z. B. =SUM(A1:A5)"
           onChange={(event) => setFormulaDraft(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -391,7 +404,8 @@ export function DataGrid({
                       </Select>
                       {fields.length > 1 && (
                         <button
-                          aria-label={`Delete column ${field.name}`}
+                          aria-label={`Spalte ${field.name} löschen`}
+                          title={`Spalte ${field.name} löschen`}
                           className="rounded p-0.5 hover:text-destructive"
                           onClick={() => onDeleteField(field.id)}
                         >
@@ -418,9 +432,9 @@ export function DataGrid({
               <th className="w-24 border-b border-border px-2 py-1 text-left">
                 <button
                   onClick={onAddField}
-                  className="flex items-center gap-1 rounded px-1 py-0.5 text-xs text-muted-foreground hover:bg-muted"
+                  className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted font-medium"
                 >
-                  <Plus className="h-3 w-3" /> Column
+                  <Plus className="h-3.5 w-3.5 text-accent" /> Spalte
                 </button>
               </th>
             </tr>
@@ -428,13 +442,13 @@ export function DataGrid({
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={fields.length + 2} className="px-3 py-6 text-muted-foreground">
-                  No records yet.
+                <td colSpan={fields.length + 2} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  Noch keine Zeilen vorhanden. Klicke unten auf „+ Neue Zeile hinzufügen“.
                 </td>
               </tr>
             )}
             {rows.map((row, r) => (
-              <tr key={row.id} className="group">
+              <tr key={row.id} className="group hover:bg-secondary/20 transition-colors">
                 <td className="sticky left-0 z-10 border-b border-r border-border bg-muted/40 px-2 py-1 text-center font-mono text-xs text-muted-foreground">
                   {r + 1}
                 </td>
@@ -467,13 +481,23 @@ export function DataGrid({
                               gridRef.current?.focus();
                             }}
                           >
-                            <SelectTrigger className="h-7 border-none bg-transparent px-0 text-sm shadow-none">
-                              <SelectValue placeholder="—" />
+                            <SelectTrigger className="h-7 border-none bg-transparent px-0 text-xs shadow-none">
+                              <SelectValue placeholder="Auswählen…" />
                             </SelectTrigger>
-                            <SelectContent>
-                              {(field.options.choices ?? []).map((choice) => (
-                                <SelectItem key={choice} value={choice}>
-                                  {choice}
+                            <SelectContent className="text-xs">
+                              {(field.options?.choices && field.options.choices.length > 0
+                                ? field.options.choices
+                                : ["Offen", "In Arbeit", "Erledigt"]
+                              ).map((choice) => (
+                                <SelectItem key={choice} value={choice} className="text-xs">
+                                  <span
+                                    className={cn(
+                                      "inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium border",
+                                      getPillColor(choice)
+                                    )}
+                                  >
+                                    {choice}
+                                  </span>
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -502,18 +526,42 @@ export function DataGrid({
                           />
                         )
                       ) : field.type === "checkbox" ? (
-                        <input
-                          type="checkbox"
-                          checked={raw === true}
-                          onChange={(event) => onCommitCell(row.id, field.id, event.target.checked)}
-                          className="h-4 w-4 accent-[hsl(var(--primary))]"
-                        />
+                        <div className="flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            checked={raw === true}
+                            onChange={(event) => onCommitCell(row.id, field.id, event.target.checked)}
+                            className="h-4 w-4 accent-[hsl(var(--primary))] rounded cursor-pointer"
+                          />
+                        </div>
+                      ) : field.type === "select" && raw ? (
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border truncate",
+                            getPillColor(String(raw))
+                          )}
+                        >
+                          {String(raw)}
+                        </span>
+                      ) : field.type === "url" && raw ? (
+                        <div className="flex items-center gap-1 truncate">
+                          <span className="truncate">{String(raw)}</span>
+                          <a
+                            href={String(raw).startsWith("http") ? String(raw) : `https://${raw}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-muted-foreground hover:text-accent p-0.5 shrink-0"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
                       ) : (
                         <span
                           className={cn(
                             "block truncate",
                             field.type === "number" && "text-right font-mono",
-                            isFormula(raw) && "font-mono",
+                            isFormula(raw) && "font-mono font-medium text-accent-foreground",
                           )}
                         >
                           {formatValue(value)}
@@ -523,13 +571,26 @@ export function DataGrid({
                   );
                 })}
                 <td className="border-b border-border px-2">
-                  <button
-                    aria-label="Delete record"
-                    className="rounded p-1 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-destructive"
-                    onClick={() => onDeleteRow(row.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-0.5 opacity-0 transition group-hover:opacity-100">
+                    {onDuplicateRow && (
+                      <button
+                        aria-label="Zeile duplizieren"
+                        title="Zeile duplizieren"
+                        className="rounded p-1 text-muted-foreground hover:text-foreground"
+                        onClick={() => onDuplicateRow(row.id)}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <button
+                      aria-label="Zeile löschen"
+                      title="Zeile löschen"
+                      className="rounded p-1 text-muted-foreground hover:text-destructive"
+                      onClick={() => onDeleteRow(row.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -537,23 +598,24 @@ export function DataGrid({
         </table>
         <button
           onClick={onAddRow}
-          className="flex w-full items-center gap-2 border-t border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted/40"
+          className="flex w-full items-center gap-2 border-t border-border px-4 py-2.5 text-xs font-medium text-muted-foreground hover:bg-secondary/40 hover:text-foreground transition-colors"
         >
-          <Plus className="h-4 w-4" /> New record
+          <Plus className="h-4 w-4 text-accent" />
+          <span>Neue Zeile hinzufügen</span>
         </button>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 px-1 text-xs text-muted-foreground">
-        <span>{rows.length} records</span>
-        <span>Filled: {selectionStats.count}</span>
+        <span>{rows.length} {rows.length === 1 ? "Eintrag" : "Einträge"}</span>
+        <span>Ausgefüllt: {selectionStats.count}</span>
         {selectionStats.numeric > 0 && (
           <>
-            <span>Sum: {formatValue(selectionStats.sum)}</span>
-            <span>Average: {formatValue(selectionStats.average)}</span>
+            <span className="font-mono">Summe: {formatValue(selectionStats.sum)}</span>
+            <span className="font-mono">Mittelwert: {formatValue(selectionStats.average)}</span>
           </>
         )}
-        <span className="ml-auto">
-          Type to edit · Enter/Tab to move · ⌘/Ctrl+C / V copy &amp; paste · start with = for formulas
+        <span className="ml-auto text-[11px] text-muted-foreground/80">
+          Tippen zum Bearbeiten · Enter/Tab Navigieren · Strg+C / V Kopieren &amp; Einfügen · = für Formeln
         </span>
       </div>
     </div>

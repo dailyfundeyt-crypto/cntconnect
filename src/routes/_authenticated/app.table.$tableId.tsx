@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { DataGrid } from "@/components/spark/data-grid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,6 +113,7 @@ function CollectionPage() {
   const [newColName, setNewColName] = useState("");
   const [newColType, setNewColType] = useState<FieldType>("text");
   const [newColChoices, setNewColChoices] = useState("Offen, In Arbeit, Erledigt");
+  const [tableMode, setTableMode] = useState<"spreadsheet" | "database">("spreadsheet");
 
   const collectionQuery = useQuery({
     queryKey: ["collection", tableId],
@@ -240,6 +242,43 @@ function CollectionPage() {
       navigate({ to: "/app" });
     },
   });
+
+  const handleCommitCell = (rowId: string, fieldId: string, value: unknown) => {
+    const row = rows.find((r) => r.id === rowId);
+    const currentData = row ? row.data : {};
+    saveRow.mutate({
+      id: rowId,
+      data: {
+        ...currentData,
+        [fieldId]: value,
+      },
+    });
+  };
+
+  const handleCommitCells = async (updates: { rowId: string; values: Record<string, unknown> }[]) => {
+    for (const update of updates) {
+      await updateRow(update.rowId, update.values);
+    }
+    invalidate();
+    toast.success("Zellen aktualisiert");
+  };
+
+  const handleAddRows = async (count: number) => {
+    for (let i = 0; i < count; i++) {
+      await createRow(tableId, {});
+    }
+    invalidate();
+  };
+
+  const handleRenameField = async (fieldId: string, name: string) => {
+    await updateField(fieldId, { name });
+    invalidate();
+  };
+
+  const handleChangeFieldType = async (fieldId: string, type: FieldType) => {
+    await updateField(fieldId, { type });
+    invalidate();
+  };
 
   // Filter and sort rows
   const filteredAndSortedRows = useMemo(() => {
@@ -445,15 +484,44 @@ function CollectionPage() {
           </div>
         </div>
 
-        {/* Real-time Search & Filter */}
-        <div className="flex items-center gap-2">
+        {/* Real-time Search & Filter & Mode Toggle */}
+        <div className="flex flex-wrap items-center gap-2">
+          {(!view || view.kind === "table") && (
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary/30 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setTableMode("spreadsheet")}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all font-medium",
+                  tableMode === "spreadsheet"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Table2 className="h-3.5 w-3.5 text-accent" /> Kalkulation (Formeln)
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableMode("database")}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all font-medium",
+                  tableMode === "database"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Columns3 className="h-3.5 w-3.5" /> Datenbank-Liste
+              </button>
+            </div>
+          )}
+
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tabelle durchsuchen..."
-              className="h-8 pl-8 pr-3 text-xs w-48 bg-card border-border"
+              className="h-8 pl-8 pr-3 text-xs w-44 bg-card border-border"
             />
           </div>
 
@@ -476,26 +544,46 @@ function CollectionPage() {
       {/* Main View Area */}
       <div>
         {(!view || view.kind === "table") && (
-          <EnhancedGridView
-            fields={fields}
-            rows={filteredAndSortedRows}
-            sortFieldId={sortFieldId}
-            sortOrder={sortOrder}
-            onSort={(fieldId) => {
-              if (sortFieldId === fieldId) {
-                setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-              } else {
-                setSortFieldId(fieldId);
-                setSortOrder("asc");
-              }
-            }}
-            onChange={(row, data) => saveRow.mutate({ id: row.id, data })}
-            onDuplicate={(row) => duplicateRow.mutate(row)}
-            onDelete={(row) => removeRow.mutate(row.id)}
-            onAddRow={() => addRow.mutate({})}
-            onAddColumn={() => setNewColOpen(true)}
-            onDeleteColumn={(fieldId) => removeFieldMutation.mutate(fieldId)}
-          />
+          tableMode === "spreadsheet" ? (
+            <DataGrid
+              fields={fields}
+              rows={filteredAndSortedRows}
+              onCommitCell={handleCommitCell}
+              onCommitCells={handleCommitCells}
+              onAddRow={() => addRow.mutate({})}
+              onAddRows={handleAddRows}
+              onDeleteRow={(rowId) => removeRow.mutate(rowId)}
+              onDuplicateRow={(rowId) => {
+                const target = rows.find((r) => r.id === rowId);
+                if (target) duplicateRow.mutate(target);
+              }}
+              onRenameField={handleRenameField}
+              onChangeFieldType={handleChangeFieldType}
+              onAddField={() => setNewColOpen(true)}
+              onDeleteField={(fieldId) => removeFieldMutation.mutate(fieldId)}
+            />
+          ) : (
+            <EnhancedGridView
+              fields={fields}
+              rows={filteredAndSortedRows}
+              sortFieldId={sortFieldId}
+              sortOrder={sortOrder}
+              onSort={(fieldId) => {
+                if (sortFieldId === fieldId) {
+                  setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+                } else {
+                  setSortFieldId(fieldId);
+                  setSortOrder("asc");
+                }
+              }}
+              onChange={(row, data) => saveRow.mutate({ id: row.id, data })}
+              onDuplicate={(row) => duplicateRow.mutate(row)}
+              onDelete={(row) => removeRow.mutate(row.id)}
+              onAddRow={() => addRow.mutate({})}
+              onAddColumn={() => setNewColOpen(true)}
+              onDeleteColumn={(fieldId) => removeFieldMutation.mutate(fieldId)}
+            />
+          )
         )}
 
         {view?.kind === "gallery" && (
