@@ -178,17 +178,17 @@ function HealthPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 space-y-8">
+    <div className="mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b border-border/80 pb-6">
         <div>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-800 border border-emerald-500/20 mb-2">
             <Heart className="h-3.5 w-3.5" /> Bryan Johnson Blueprint & Fabian Kowallik Naturprotokoll
           </div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-            Gesundheit & Bio-Tracking
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            Gesundheit &amp; Bio-Tracking
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {todayStr} — Verifiziertes Protokoll: Trifecta, Mikrobewegungen, Ergonomie und Nährstoff-Synergien.
           </p>
         </div>

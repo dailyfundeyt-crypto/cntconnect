@@ -333,12 +333,12 @@ function StudioPage() {
         </div>
 
         {/* Tab switcher */}
-        <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border bg-secondary/50 p-1">
+        <div className="flex items-center gap-1 rounded-xl border border-border bg-secondary/50 p-1 overflow-x-auto max-w-full">
           <Button
             size="sm"
             variant={activeTab === "books" ? "default" : "ghost"}
             onClick={() => setActiveTab("books")}
-            className="text-xs gap-1.5"
+            className="text-xs gap-1.5 shrink-0 whitespace-nowrap"
           >
             <BookOpen className="h-3.5 w-3.5" /> Bücher &amp; Reader
           </Button>
@@ -346,7 +346,7 @@ function StudioPage() {
             size="sm"
             variant={activeTab === "youtube" ? "default" : "ghost"}
             onClick={() => setActiveTab("youtube")}
-            className="text-xs gap-1.5"
+            className="text-xs gap-1.5 shrink-0 whitespace-nowrap"
           >
             <Youtube className="h-3.5 w-3.5 text-red-500" /> Focus-Tube
           </Button>
@@ -354,7 +354,7 @@ function StudioPage() {
             size="sm"
             variant={activeTab === "scriptwriter" ? "default" : "ghost"}
             onClick={() => setActiveTab("scriptwriter")}
-            className="text-xs gap-1.5"
+            className="text-xs gap-1.5 shrink-0 whitespace-nowrap"
           >
             <PenTool className="h-3.5 w-3.5 text-accent" /> KI-Scriptwriter
           </Button>
@@ -362,7 +362,7 @@ function StudioPage() {
             size="sm"
             variant={activeTab === "xcapture" ? "default" : "ghost"}
             onClick={() => setActiveTab("xcapture")}
-            className="text-xs gap-1.5"
+            className="text-xs gap-1.5 shrink-0 whitespace-nowrap"
           >
             <Globe className="h-3.5 w-3.5 text-sky-500" /> XCapture
           </Button>
@@ -587,12 +587,12 @@ function StudioPage() {
               </div>
 
               {/* Sub-Navigation Tabs */}
-              <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border/70 bg-secondary/40 p-1">
+              <div className="flex items-center gap-1.5 rounded-xl border border-border/70 bg-secondary/40 p-1 overflow-x-auto max-w-full">
                 <Button
                   size="sm"
                   variant={focusTubeSubTab === "feed" ? "default" : "ghost"}
                   onClick={() => setFocusTubeSubTab("feed")}
-                  className="h-8 text-xs gap-1.5"
+                  className="h-8 text-xs gap-1.5 shrink-0 whitespace-nowrap"
                 >
                   <Film className="h-3.5 w-3.5" /> Feed &amp; Kanäle
                 </Button>
@@ -600,7 +600,7 @@ function StudioPage() {
                   size="sm"
                   variant={focusTubeSubTab === "watchlist" ? "default" : "ghost"}
                   onClick={() => setFocusTubeSubTab("watchlist")}
-                  className="h-8 text-xs gap-1.5"
+                  className="h-8 text-xs gap-1.5 shrink-0 whitespace-nowrap"
                 >
                   <Clock className="h-3.5 w-3.5 text-amber-500" /> Watchlist
                 </Button>
@@ -608,7 +608,7 @@ function StudioPage() {
                   size="sm"
                   variant={focusTubeSubTab === "watched" ? "default" : "ghost"}
                   onClick={() => setFocusTubeSubTab("watched")}
-                  className="h-8 text-xs gap-1.5"
+                  className="h-8 text-xs gap-1.5 shrink-0 whitespace-nowrap"
                 >
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Gesehen
                 </Button>
@@ -616,7 +616,7 @@ function StudioPage() {
                   size="sm"
                   variant={focusTubeSubTab === "analytics" ? "default" : "ghost"}
                   onClick={() => setFocusTubeSubTab("analytics")}
-                  className="h-8 text-xs gap-1.5"
+                  className="h-8 text-xs gap-1.5 shrink-0 whitespace-nowrap"
                 >
                   <Zap className="h-3.5 w-3.5 text-accent" /> Analytics &amp; Heatmap
                 </Button>

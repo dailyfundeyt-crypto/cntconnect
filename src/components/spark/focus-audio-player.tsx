@@ -81,13 +81,13 @@ export function FocusAudioPlayer() {
   return (
     <div
       className={cn(
-        "fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2 transition-all duration-300",
+        "fixed bottom-20 right-3 sm:bottom-4 sm:right-4 z-50 flex flex-col items-end gap-2 transition-all duration-300",
         settings.isPlaying && "animate-pulse-subtle"
       )}
     >
       {/* Expanded Control Panel */}
       {isExpanded && (
-        <div className="w-80 rounded-2xl border border-border bg-card/95 p-4 shadow-float backdrop-blur-md space-y-4 animate-in fade-in slide-in-from-bottom-2">
+        <div className="w-[calc(100vw-1.5rem)] max-w-sm sm:w-80 rounded-2xl border border-border bg-card/95 p-4 shadow-float backdrop-blur-md space-y-4 animate-in fade-in slide-in-from-bottom-2">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
             <div className="flex items-center gap-2">

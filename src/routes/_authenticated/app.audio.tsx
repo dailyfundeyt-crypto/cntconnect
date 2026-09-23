@@ -147,18 +147,18 @@ function AudioStudioPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 space-y-8">
+    <div className="mx-auto max-w-6xl px-3 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-6">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent border border-accent/20 mb-2">
             <Sparkles className="h-3.5 w-3.5" /> 17 KI-generierte Meister-Tracks
           </div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            <Headphones className="h-7 w-7 text-accent" />
-            Brain.fm AI Music & Flow Studio
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
+            <Headphones className="h-6 w-6 sm:h-7 sm:w-7 text-accent shrink-0" />
+            Brain.fm AI Music Studio
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
             Wissenschaftlich inspirierte Instrumental-Soundscapes für Tiefschlaf, Alpha-Flow, aktive Konzentration und Peak-Performance.
           </p>
         </div>
@@ -172,11 +172,11 @@ function AudioStudioPage() {
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-3 border-b border-border/60 pb-3">
+      <div className="flex items-center gap-2 border-b border-border/60 pb-3 overflow-x-auto">
         <button
           onClick={() => setActiveTab("music")}
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
+            "flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0",
             activeTab === "music"
               ? "bg-accent text-accent-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
@@ -334,13 +334,13 @@ function AudioStudioPage() {
       {activeTab === "music" && (
         <div className="space-y-6">
           {/* Zone Filter Chips */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap">
             {zones.map((z) => (
               <button
                 key={z.id}
                 onClick={() => setSelectedZone(z.id)}
                 className={cn(
-                  "rounded-full px-3.5 py-1.5 text-xs font-medium transition-all border",
+                  "rounded-full px-3.5 py-1.5 text-xs font-medium transition-all border whitespace-nowrap shrink-0",
                   selectedZone === z.id
                     ? "border-accent bg-accent text-accent-foreground font-semibold shadow-xs"
                     : "border-border/70 bg-card hover:bg-secondary text-muted-foreground"
