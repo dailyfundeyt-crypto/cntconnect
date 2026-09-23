@@ -55,6 +55,28 @@ interface HealthState {
   checkedErgonomics: Record<string, boolean>;
 }
 
+const DEFAULT_HEALTH_STATE: HealthState = {
+  weightKg: 75,
+  energyLevel: 8,
+  waterLiters: 2.5,
+  notes: "",
+  checkedSupplements: {},
+  checkedRoutines: {},
+  checkedErgonomics: {},
+};
+
+function sanitizeHealthState(raw: Partial<HealthState> | null | undefined): HealthState {
+  return {
+    weightKg: typeof raw?.weightKg === "number" && !isNaN(raw.weightKg) ? raw.weightKg : DEFAULT_HEALTH_STATE.weightKg,
+    energyLevel: typeof raw?.energyLevel === "number" && !isNaN(raw.energyLevel) ? raw.energyLevel : DEFAULT_HEALTH_STATE.energyLevel,
+    waterLiters: typeof raw?.waterLiters === "number" && !isNaN(raw.waterLiters) ? raw.waterLiters : DEFAULT_HEALTH_STATE.waterLiters,
+    notes: typeof raw?.notes === "string" ? raw.notes : DEFAULT_HEALTH_STATE.notes,
+    checkedSupplements: raw?.checkedSupplements && typeof raw.checkedSupplements === "object" ? { ...raw.checkedSupplements } : {},
+    checkedRoutines: raw?.checkedRoutines && typeof raw.checkedRoutines === "object" ? { ...raw.checkedRoutines } : {},
+    checkedErgonomics: raw?.checkedErgonomics && typeof raw.checkedErgonomics === "object" ? { ...raw.checkedErgonomics } : {},
+  };
+}
+
 function HealthPage() {
   const [todayStr] = useState<string>(
     new Date().toLocaleDateString("de-DE", {
@@ -66,15 +88,12 @@ function HealthPage() {
   );
 
   const [state, setState] = useState<HealthState>(() => {
-    return getLocalData<HealthState>("spark_health", {
-      weightKg: 75,
-      energyLevel: 8,
-      waterLiters: 2.5,
-      notes: "",
-      checkedSupplements: {},
-      checkedRoutines: {},
-      checkedErgonomics: {},
-    });
+    try {
+      const raw = getLocalData<HealthState>("spark_health", DEFAULT_HEALTH_STATE);
+      return sanitizeHealthState(raw);
+    } catch {
+      return DEFAULT_HEALTH_STATE;
+    }
   });
 
   // Micro-Movement 5-Minute Timer (Bryan Johnson Blueprint)
@@ -84,7 +103,7 @@ function HealthPage() {
 
   useEffect(() => {
     void pullFromSupabase<HealthState>("spark_health", state).then((remote) => {
-      if (remote) setState(remote);
+      if (remote) setState(sanitizeHealthState(remote));
     });
   }, []);
 
@@ -111,33 +130,36 @@ function HealthPage() {
   }, [isTimerRunning]);
 
   function updateState(partial: Partial<HealthState>) {
-    const updated = { ...state, ...partial };
+    const updated = sanitizeHealthState({ ...state, ...partial });
     setState(updated);
     setLocalAndSyncData("spark_health", updated);
   }
 
   function toggleSupplement(id: string) {
+    const current = state.checkedSupplements || {};
     const nextChecked = {
-      ...state.checkedSupplements,
-      [id]: !state.checkedSupplements[id],
+      ...current,
+      [id]: !current[id],
     };
     updateState({ checkedSupplements: nextChecked });
     toast.success("Einnahme aktualisiert");
   }
 
   function toggleRoutine(id: string) {
+    const current = state.checkedRoutines || {};
     const nextChecked = {
-      ...state.checkedRoutines,
-      [id]: !state.checkedRoutines[id],
+      ...current,
+      [id]: !current[id],
     };
     updateState({ checkedRoutines: nextChecked });
     toast.success("Routine aktualisiert");
   }
 
   function toggleErgonomics(id: string) {
+    const current = state.checkedErgonomics || {};
     const nextChecked = {
-      ...state.checkedErgonomics,
-      [id]: !state.checkedErgonomics[id],
+      ...current,
+      [id]: !current[id],
     };
     updateState({ checkedErgonomics: nextChecked });
     toast.success("Ergonomie aktualisiert");
@@ -145,7 +167,8 @@ function HealthPage() {
 
   // Calculated dosages based on weight from Gesundheit.txt (Kowallik)
   // 1.000 IE D3 je 7 kg Gewicht; 20 µg K2 je 1.000 IE D3
-  const calculatedD3 = Math.round((state.weightKg / 7) * 1000);
+  const safeWeight = state.weightKg && !isNaN(state.weightKg) ? state.weightKg : 70;
+  const calculatedD3 = Math.round((safeWeight / 7) * 1000);
   const calculatedK2 = Math.round((calculatedD3 / 1000) * 20);
 
   const formatTimer = (secs: number) => {

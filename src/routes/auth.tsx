@@ -31,9 +31,17 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const GOOGLE_CLIENT_ID =
-  (import.meta.env["VITE_GOOGLE_WEB_CLIENT_ID"] as string | undefined) ||
-  "191673675014-002k6i88eo0epect8v6gqfshaab43d8l.apps.googleusercontent.com";
+// Same convention as app.plan.tsx: on localhost use the dedicated local OAuth client,
+// everywhere else (deployed) the web client.
+const IS_LOCALHOST =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
+const GOOGLE_CLIENT_ID = IS_LOCALHOST
+  ? (import.meta.env["VITE_GOOGLE_LOCAL_CLIENT_ID"] as string | undefined) ||
+    "191673675014-kppmek9blvhu7l9d4dd9nq6e5fugqivl.apps.googleusercontent.com"
+  : (import.meta.env["VITE_GOOGLE_WEB_CLIENT_ID"] as string | undefined) ||
+    "191673675014-002k6i88eo0epect8v6gqfshaab43d8l.apps.googleusercontent.com";
 
 function GoogleIcon() {
   return (

@@ -4,6 +4,8 @@
  * Generates true binaural beats, neural oscillations, and soothing soundscapes.
  */
 
+import type { BrainFmTrack } from "./brainfm-tracks";
+
 export type BrainwaveFrequency = "gamma" | "alpha" | "theta" | "delta" | "off";
 export type SoundscapeType = "none" | "brown_noise" | "rain" | "lofi" | "forest";
 
@@ -13,7 +15,12 @@ export interface AudioSettings {
   volume: number; // 0 to 1
   binauralVolume: number; // 0 to 1
   soundscapeVolume: number; // 0 to 1
-  isPlaying: boolean;
+  trackVolume: number; // 0 to 1
+  isPlaying: boolean; // binaural / soundscape playing
+  isPlayingTrack: boolean; // music track playing
+  currentTrack: BrainFmTrack | null;
+  trackProgress: number; // seconds
+  trackDuration: number; // seconds
 }
 
 const FREQUENCY_CONFIG: Record<
@@ -66,13 +73,51 @@ class FocusAudioEngine {
     volume: 0.6,
     binauralVolume: 0.5,
     soundscapeVolume: 0.7,
+    trackVolume: 0.8,
     isPlaying: false,
+    isPlayingTrack: false,
+    currentTrack: null,
+    trackProgress: 0,
+    trackDuration: 0,
   };
 
+  private audioEl: HTMLAudioElement | null = null;
   private listeners: Set<(s: AudioSettings) => void> = new Set();
 
   constructor() {
-    // Lazy init on first user interaction
+    if (typeof window !== "undefined") {
+      this.initAudioElement();
+    }
+  }
+
+  private initAudioElement() {
+    if (this.audioEl || typeof window === "undefined") return;
+    this.audioEl = new Audio();
+    this.audioEl.loop = true;
+    this.audioEl.volume = this.settings.trackVolume * this.settings.volume;
+
+    this.audioEl.addEventListener("timeupdate", () => {
+      if (this.audioEl) {
+        this.settings.trackProgress = this.audioEl.currentTime;
+        this.settings.trackDuration = this.audioEl.duration || 0;
+        this.notify();
+      }
+    });
+
+    this.audioEl.addEventListener("play", () => {
+      this.settings.isPlayingTrack = true;
+      this.notify();
+    });
+
+    this.audioEl.addEventListener("pause", () => {
+      this.settings.isPlayingTrack = false;
+      this.notify();
+    });
+
+    this.audioEl.addEventListener("ended", () => {
+      this.settings.isPlayingTrack = false;
+      this.notify();
+    });
   }
 
   private initContext() {
@@ -139,6 +184,72 @@ class FocusAudioEngine {
     }
   }
 
+  // --- Real Music Track Controls ---
+  public async playBrainFmTrack(track: BrainFmTrack) {
+    this.initAudioElement();
+    if (!this.audioEl) return;
+
+    if (this.settings.currentTrack?.id !== track.id) {
+      this.audioEl.src = track.audioUrl;
+      this.settings.currentTrack = track;
+    }
+
+    this.audioEl.volume = this.settings.trackVolume * this.settings.volume;
+    try {
+      await this.audioEl.play();
+      this.settings.isPlayingTrack = true;
+    } catch (e) {
+      console.warn("Audio playback failed:", e);
+    }
+    this.notify();
+  }
+
+  public pauseBrainFmTrack() {
+    if (this.audioEl) {
+      this.audioEl.pause();
+      this.settings.isPlayingTrack = false;
+      this.notify();
+    }
+  }
+
+  public resumeBrainFmTrack() {
+    if (this.audioEl && this.settings.currentTrack) {
+      void this.audioEl.play();
+      this.settings.isPlayingTrack = true;
+      this.notify();
+    }
+  }
+
+  public toggleBrainFmTrack(track?: BrainFmTrack) {
+    if (track && this.settings.currentTrack?.id !== track.id) {
+      void this.playBrainFmTrack(track);
+      return;
+    }
+    if (this.settings.isPlayingTrack) {
+      this.pauseBrainFmTrack();
+    } else if (this.settings.currentTrack) {
+      this.resumeBrainFmTrack();
+    } else if (track) {
+      void this.playBrainFmTrack(track);
+    }
+  }
+
+  public setTrackVolume(vol: number) {
+    this.settings.trackVolume = Math.max(0, Math.min(1, vol));
+    if (this.audioEl) {
+      this.audioEl.volume = this.settings.trackVolume * this.settings.volume;
+    }
+    this.notify();
+  }
+
+  public seekTrack(seconds: number) {
+    if (this.audioEl && Number.isFinite(seconds)) {
+      this.audioEl.currentTime = seconds;
+      this.settings.trackProgress = seconds;
+      this.notify();
+    }
+  }
+
   public setFrequency(freq: BrainwaveFrequency) {
     this.settings.frequency = freq;
     if (this.settings.isPlaying) {
@@ -157,24 +268,27 @@ class FocusAudioEngine {
 
   public setVolume(vol: number) {
     this.settings.volume = Math.max(0, Math.min(1, vol));
-    if (this.masterGain) {
-      this.masterGain.gain.setTargetAtTime(this.settings.volume, this.ctx!.currentTime, 0.05);
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setTargetAtTime(this.settings.volume, this.ctx.currentTime, 0.05);
+    }
+    if (this.audioEl) {
+      this.audioEl.volume = this.settings.trackVolume * this.settings.volume;
     }
     this.notify();
   }
 
   public setBinauralVolume(vol: number) {
     this.settings.binauralVolume = Math.max(0, Math.min(1, vol));
-    if (this.binauralGain) {
-      this.binauralGain.gain.setTargetAtTime(this.settings.binauralVolume, this.ctx!.currentTime, 0.05);
+    if (this.binauralGain && this.ctx) {
+      this.binauralGain.gain.setTargetAtTime(this.settings.binauralVolume, this.ctx.currentTime, 0.05);
     }
     this.notify();
   }
 
   public setSoundscapeVolume(vol: number) {
     this.settings.soundscapeVolume = Math.max(0, Math.min(1, vol));
-    if (this.soundscapeGain) {
-      this.soundscapeGain.gain.setTargetAtTime(this.settings.soundscapeVolume, this.ctx!.currentTime, 0.05);
+    if (this.soundscapeGain && this.ctx) {
+      this.soundscapeGain.gain.setTargetAtTime(this.settings.soundscapeVolume, this.ctx.currentTime, 0.05);
     }
     this.notify();
   }

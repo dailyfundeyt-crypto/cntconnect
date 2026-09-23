@@ -30,7 +30,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { EmbeddedVideoPlayer } from "@/components/spark/focustube/embedded-video-player";
+import { YearActivityGrid } from "@/components/spark/focustube/year-activity-grid";
+import { SkillProgress } from "@/components/spark/focustube/skill-progress";
+import { WatchlistGrid } from "@/components/spark/focustube/watchlist-grid";
+import { AddWatchlistVideo } from "@/components/spark/focustube/add-watchlist-video";
+import { WatchedVideosTab } from "@/components/spark/focustube/watched-videos-tab";
+import { CategoryManagement } from "@/components/spark/focustube/category-management";
+import { AddChannelDialog } from "@/components/spark/focustube/add-channel-dialog";
+import { ChannelGoalSettings } from "@/components/spark/focustube/channel-goal-settings";
 import { getLocalData, setLocalAndSyncData } from "@/lib/storage-sync";
 import {
   categorizeSkill,
@@ -171,6 +182,13 @@ function StudioPage() {
   /* ---------- 2. YOUTUBE LEARNING PIPELINE (FOCUS-TUBE-FILTER) ---------- */
   const [channels, setChannels] = useState<YouTubeChannel[]>(() => loadYouTubeChannels());
   const [videos, setVideos] = useState<YouTubeVideo[]>(() => loadYouTubeVideos());
+  const [focusTubeSubTab, setFocusTubeSubTab] = useState<"feed" | "watchlist" | "watched" | "analytics">("feed");
+  const [activePlayerVideo, setActivePlayerVideo] = useState<{ id: string; title: string } | null>(null);
+  const [selectedChannelFilter, setSelectedChannelFilter] = useState<string>("all");
+
+  const totalDailyGoal = channels.reduce((sum, c) => sum + (c.dailyGoal || 1), 0);
+  const watchedTodayCount = videos.filter((v) => v.watched).length;
+  const goalPercentage = totalDailyGoal > 0 ? Math.min(100, Math.round((watchedTodayCount / totalDailyGoal) * 100)) : 0;
 
   const [newChannelName, setNewChannelName] = useState("");
   const [newChannelHandle, setNewChannelHandle] = useState("");
@@ -553,95 +571,166 @@ function StudioPage() {
         </div>
       )}
 
-      {/* ----------------- TAB 2: YOUTUBE LEARNING (FOCUS-TUBE-FILTER) ----------------- */}
+      {/* ----------------- TAB 2: YOUTUBE LEARNING (FOCUS-TUBE-FILTER SUITE) ----------------- */}
       {activeTab === "youtube" && (
         <div className="space-y-6">
-          {/* Action Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-panel">
-            <div>
-              <div className="font-semibold text-sm text-foreground">
-                YouTube Lern-Pipeline &amp; Skill-Zuordnung
+          {/* Top Control Bar with Sub-Tabs and Daily Goal Progress */}
+          <div className="rounded-2xl border border-border/80 bg-card/80 p-5 shadow-panel space-y-4 backdrop-blur-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="font-display font-bold text-lg text-foreground flex items-center gap-2">
+                  <Youtube className="h-5 w-5 text-red-500" /> Focus-Tube Learning Suite
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  Ablenkungsfreie Videos, echte Watchlist, 365-Tage Lern-Heatmap &amp; Skill-Tracking.
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">
-                Ablenkungsfreie Videos, KI-Kategorisierung und nahtlose Synchronisation in Spark Datenbanken.
+
+              {/* Sub-Navigation Tabs */}
+              <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border/70 bg-secondary/40 p-1">
+                <Button
+                  size="sm"
+                  variant={focusTubeSubTab === "feed" ? "default" : "ghost"}
+                  onClick={() => setFocusTubeSubTab("feed")}
+                  className="h-8 text-xs gap-1.5"
+                >
+                  <Film className="h-3.5 w-3.5" /> Feed &amp; Kanäle
+                </Button>
+                <Button
+                  size="sm"
+                  variant={focusTubeSubTab === "watchlist" ? "default" : "ghost"}
+                  onClick={() => setFocusTubeSubTab("watchlist")}
+                  className="h-8 text-xs gap-1.5"
+                >
+                  <Clock className="h-3.5 w-3.5 text-amber-500" /> Watchlist
+                </Button>
+                <Button
+                  size="sm"
+                  variant={focusTubeSubTab === "watched" ? "default" : "ghost"}
+                  onClick={() => setFocusTubeSubTab("watched")}
+                  className="h-8 text-xs gap-1.5"
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Gesehen
+                </Button>
+                <Button
+                  size="sm"
+                  variant={focusTubeSubTab === "analytics" ? "default" : "ghost"}
+                  onClick={() => setFocusTubeSubTab("analytics")}
+                  className="h-8 text-xs gap-1.5"
+                >
+                  <Zap className="h-3.5 w-3.5 text-accent" /> Analytics &amp; Heatmap
+                </Button>
               </div>
             </div>
 
-            <Button size="sm" onClick={handleSyncToDatabase} className="gap-1.5 text-xs">
-              <Database className="h-3.5 w-3.5 text-accent" /> In Datenbank-Tabelle einspeisen
-            </Button>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Channels List */}
-            <div className="lg:col-span-1 rounded-2xl border border-border bg-card p-5 shadow-panel space-y-4">
-              <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                <span className="font-semibold text-sm text-foreground">Fokus-Kanäle</span>
-                <span className="text-xs text-muted-foreground font-mono">{channels.length}</span>
+            {/* Daily Goal & Quick Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-border/50 text-xs">
+              <div className="flex-1 max-w-md space-y-1.5">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Tages-Lernziel:</span>
+                  <span className="font-semibold text-foreground">
+                    {watchedTodayCount} von {totalDailyGoal} Videos ({goalPercentage}%)
+                  </span>
+                </div>
+                <Progress value={goalPercentage} className="h-2" />
               </div>
 
-              {/* Add channel */}
-              <form onSubmit={handleAddChannel} className="space-y-2">
-                <Input
-                  value={newChannelName}
-                  onChange={(e) => setNewChannelName(e.target.value)}
-                  placeholder="Kanalname (z. B. Theo - t3.gg)..."
-                  className="text-xs h-8"
+              <div className="flex items-center gap-2">
+                <AddChannelDialog
+                  onChannelAdded={(newChan) => {
+                    const next = [newChan, ...channels];
+                    setChannels(next);
+                    saveYouTubeChannels(next);
+                  }}
                 />
-                <Button size="sm" type="submit" className="w-full text-xs h-7">
-                  + Kanal hinzufügen
+                <Button size="sm" variant="ghost" onClick={handleSyncToDatabase} className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground">
+                  <Database className="h-3.5 w-3.5 text-accent" /> In DB sichern
                 </Button>
-              </form>
+              </div>
+            </div>
+          </div>
 
-              {/* Channel list */}
-              <div className="space-y-2 max-h-80 overflow-y-auto">
+          {/* SUB-TAB 1: FEED & CHANNELS */}
+          {focusTubeSubTab === "feed" && (
+            <div className="space-y-6">
+              {/* Channel Filter Pills */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                <Button
+                  size="sm"
+                  variant={selectedChannelFilter === "all" ? "default" : "outline"}
+                  onClick={() => setSelectedChannelFilter("all")}
+                  className="h-7 text-xs rounded-full"
+                >
+                  Alle Kanäle ({videos.length})
+                </Button>
                 {channels.map((ch) => (
-                  <div
-                    key={ch.id}
-                    className="rounded-lg border border-border/60 p-2.5 flex items-center justify-between text-xs hover:bg-secondary/40 transition-colors"
-                  >
-                    <div>
-                      <div className="font-medium text-foreground">{ch.name}</div>
-                      <div className="text-[10px] text-accent font-semibold">{ch.category}</div>
-                    </div>
+                  <div key={ch.id} className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs">
+                    <button
+                      onClick={() => setSelectedChannelFilter(ch.name)}
+                      className={cn(
+                        "font-medium transition-colors hover:text-primary",
+                        selectedChannelFilter === ch.name ? "text-primary font-bold" : "text-foreground"
+                      )}
+                    >
+                      {ch.name}
+                    </button>
+                    <span className="text-[10px] text-muted-foreground font-mono">({ch.category})</span>
+                    <ChannelGoalSettings
+                      channelId={ch.id}
+                      channelName={ch.name}
+                      currentGoal={ch.dailyGoal || 1}
+                      onGoalUpdate={(newGoal) => {
+                        const updated = channels.map((c) => (c.id === ch.id ? { ...c, dailyGoal: newGoal } : c));
+                        setChannels(updated);
+                        saveYouTubeChannels(updated);
+                      }}
+                    />
                     <button
                       onClick={() => {
                         const next = channels.filter((c) => c.id !== ch.id);
                         setChannels(next);
                         saveYouTubeChannels(next);
+                        if (selectedChannelFilter === ch.name) setSelectedChannelFilter("all");
                       }}
-                      className="text-muted-foreground hover:text-destructive p-1"
+                      className="text-muted-foreground hover:text-destructive ml-0.5"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* Video List & Capture */}
-            <div className="lg:col-span-2 space-y-4">
               {/* Add Video Form */}
-              <form onSubmit={handleAddVideo} className="rounded-2xl border border-border bg-card p-5 shadow-panel space-y-3">
-                <div className="font-medium text-sm text-foreground">Neues Lern-Video erfassen</div>
-                <div className="grid gap-3 sm:grid-cols-2">
+              <form onSubmit={handleAddVideo} className="rounded-2xl border border-border bg-card/80 p-5 shadow-panel space-y-3">
+                <div className="font-semibold text-sm text-foreground flex items-center gap-2">
+                  <Plus className="h-4 w-4 text-accent" /> Neues Lern-Video erfassen
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
                   <Input
                     value={newVideoTitle}
                     onChange={(e) => setNewVideoTitle(e.target.value)}
-                    placeholder="Video Titel..."
+                    placeholder="Video-Titel..."
                     className="text-xs"
+                    required
                   />
                   <Input
                     value={newVideoUrl}
                     onChange={(e) => setNewVideoUrl(e.target.value)}
-                    placeholder="https://www.youtube.com/watch?v=..."
+                    placeholder="YouTube-URL (watch?v=... oder youtu.be/...)"
+                    className="text-xs"
+                    required
+                  />
+                  <Input
+                    value={newVideoChannel}
+                    onChange={(e) => setNewVideoChannel(e.target.value)}
+                    placeholder="Kanalname (optional)"
                     className="text-xs"
                   />
                 </div>
                 <Textarea
                   value={newVideoNotes}
                   onChange={(e) => setNewVideoNotes(e.target.value)}
-                  placeholder="Erste Notizen, Kernideen oder Zeitstempel eingeben..."
+                  placeholder="Kernideen, Notizen, Fazit oder wichtige Zeitstempel..."
                   rows={2}
                   className="text-xs"
                 />
@@ -652,74 +741,140 @@ function StudioPage() {
                 </div>
               </form>
 
-              {/* Videos list */}
-              <div className="space-y-3">
-                {videos.map((vid) => (
-                  <div
-                    key={vid.id}
-                    className="rounded-xl border border-border bg-card p-4 shadow-panel space-y-3"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="font-semibold text-sm text-foreground">{vid.title}</div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
-                          <span>{vid.channelName}</span>
-                          <span>·</span>
-                          <span className="text-accent font-semibold">{vid.category}</span>
+              {/* Videos Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {videos
+                  .filter((v) => selectedChannelFilter === "all" || v.channelName === selectedChannelFilter)
+                  .map((vid) => {
+                    const ytId = extractYouTubeId(vid.url);
+                    const thumbnail = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : "";
+
+                    return (
+                      <Card
+                        key={vid.id}
+                        className="group overflow-hidden border-border/70 bg-card/70 backdrop-blur-sm transition-all hover:border-primary/50 flex flex-col justify-between"
+                      >
+                        <div>
+                          {/* Thumbnail with Click-to-Play */}
+                          <div
+                            className="relative aspect-video w-full overflow-hidden bg-muted cursor-pointer"
+                            onClick={() => {
+                              if (ytId) setActivePlayerVideo({ id: ytId, title: vid.title });
+                              else window.open(vid.url, "_blank");
+                            }}
+                          >
+                            {thumbnail ? (
+                              <img
+                                src={thumbnail}
+                                alt={vid.title}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-secondary text-muted-foreground text-xs">
+                                Kein Thumbnail
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                              <div className="h-10 w-10 rounded-full bg-primary/90 text-primary-foreground flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-110">
+                                <Play className="h-5 w-5 fill-current ml-0.5" />
+                              </div>
+                            </div>
+                            {vid.watched && (
+                              <div className="absolute top-2 right-2 bg-emerald-500/90 text-white rounded-full p-1 shadow">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="p-4 space-y-2">
+                            <h3
+                              className="font-medium text-sm line-clamp-2 text-foreground hover:text-primary cursor-pointer transition-colors"
+                              onClick={() => {
+                                if (ytId) setActivePlayerVideo({ id: ytId, title: vid.title });
+                                else window.open(vid.url, "_blank");
+                              }}
+                            >
+                              {vid.title}
+                            </h3>
+                            <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
+                              <span className="font-semibold text-foreground/80">{vid.channelName}</span>
+                              <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground">
+                                {vid.category}
+                              </span>
+                            </div>
+
+                            {vid.notes && (
+                              <div className="rounded-lg bg-secondary/40 p-2 text-[11px] text-foreground font-mono leading-relaxed line-clamp-3">
+                                {vid.notes}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <a
-                        href={vid.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs flex items-center gap-1 text-muted-foreground hover:text-accent"
-                      >
-                        Auf YouTube öffnen <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
 
-                    {vid.notes && (
-                      <div className="rounded-lg bg-secondary/50 p-2.5 text-xs text-foreground font-mono leading-relaxed whitespace-pre-line">
-                        {vid.notes}
-                      </div>
-                    )}
+                        <div className="p-4 pt-0 flex items-center justify-between border-t border-border/50 pt-2 text-xs">
+                          <button
+                            onClick={() => {
+                              const next = videos.map((v) =>
+                                v.id === vid.id ? { ...v, watched: !v.watched, watchedAt: !v.watched ? new Date().toISOString() : undefined } : v
+                              );
+                              setVideos(next);
+                              saveYouTubeVideos(next);
+                              toast.success(vid.watched ? "Als ungesehen markiert" : "Als gesehen markiert!");
+                            }}
+                            className={cn(
+                              "flex items-center gap-1.5 font-medium transition-colors text-xs",
+                              vid.watched ? "text-emerald-500" : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                            {vid.watched ? "Gesehen" : "Abhaken"}
+                          </button>
 
-                    <div className="flex items-center justify-between border-t border-border/60 pt-2 text-xs">
-                      <button
-                        onClick={() => {
-                          const next = videos.map((v) =>
-                            v.id === vid.id ? { ...v, watched: !v.watched } : v
-                          );
-                          setVideos(next);
-                          saveYouTubeVideos(next);
-                        }}
-                        className={cn(
-                          "flex items-center gap-1.5 font-medium transition-colors",
-                          vid.watched ? "text-emerald-600" : "text-muted-foreground hover:text-foreground"
-                        )}
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                        {vid.watched ? "Als gesehen markiert" : "Als gesehen abhaken"}
-                      </button>
-
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 text-xs text-destructive hover:bg-destructive/10"
-                        onClick={() => {
-                          const next = videos.filter((v) => v.id !== vid.id);
-                          setVideos(next);
-                          saveYouTubeVideos(next);
-                        }}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              const next = videos.filter((v) => v.id !== vid.id);
+                              setVideos(next);
+                              saveYouTubeVideos(next);
+                              toast.success("Video entfernt");
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </Card>
+                    );
+                  })}
               </div>
             </div>
-          </div>
+          )}
+
+          {/* SUB-TAB 2: WATCHLIST */}
+          {focusTubeSubTab === "watchlist" && <WatchlistGrid />}
+
+          {/* SUB-TAB 3: WATCHED HISTORY */}
+          {focusTubeSubTab === "watched" && <WatchedVideosTab />}
+
+          {/* SUB-TAB 4: ANALYTICS, HEATMAP & CATEGORIES */}
+          {focusTubeSubTab === "analytics" && (
+            <div className="space-y-6">
+              <YearActivityGrid />
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-foreground">Skill-Fortschritt nach Kategorien</h3>
+                <SkillProgress />
+              </div>
+              <CategoryManagement />
+            </div>
+          )}
+
+          {/* Distraction-Free Modal Player */}
+          <EmbeddedVideoPlayer
+            videoId={activePlayerVideo?.id || null}
+            videoTitle={activePlayerVideo?.title || ""}
+            onClose={() => setActivePlayerVideo(null)}
+          />
         </div>
       )}
 

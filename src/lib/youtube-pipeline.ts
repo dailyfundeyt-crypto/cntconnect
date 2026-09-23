@@ -12,6 +12,7 @@ export interface YouTubeChannel {
   category: string;
   avatarUrl?: string | undefined;
   videoCount?: number | undefined;
+  dailyGoal?: number | undefined;
   addedAt: string;
 }
 

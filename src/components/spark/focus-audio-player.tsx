@@ -258,6 +258,27 @@ export function FocusAudioPlayer() {
             </div>
           </div>
 
+          {/* Music Track Status (if active) */}
+          {settings.currentTrack && (
+            <div className="rounded-xl border border-accent/30 bg-accent/5 p-2.5 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase text-accent font-semibold">
+                  BrainFM AI Track
+                </span>
+                <button
+                  onClick={() => focusAudio.toggleBrainFmTrack()}
+                  className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
+                >
+                  {settings.isPlayingTrack ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                  {settings.isPlayingTrack ? "Pause" : "Play"}
+                </button>
+              </div>
+              <div className="text-xs font-bold text-foreground truncate">
+                {settings.currentTrack.title}
+              </div>
+            </div>
+          )}
+
           {/* Master Volume */}
           <div className="space-y-1 pt-1">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -279,16 +300,26 @@ export function FocusAudioPlayer() {
       {/* Floating Pill Mini-Bar */}
       <div className="flex items-center gap-2 rounded-full border border-border bg-card/90 px-3 py-1.5 shadow-float backdrop-blur-md">
         <button
-          onClick={() => focusAudio.toggle()}
+          onClick={() => {
+            if (settings.currentTrack) {
+              focusAudio.toggleBrainFmTrack();
+            } else {
+              focusAudio.toggle();
+            }
+          }}
           className={cn(
             "flex h-8 w-8 items-center justify-center rounded-full transition-transform active:scale-95 shadow-sm",
-            settings.isPlaying
+            settings.isPlaying || settings.isPlayingTrack
               ? "bg-accent text-accent-foreground"
               : "bg-secondary text-foreground hover:bg-secondary/80"
           )}
-          title={settings.isPlaying ? "Audio pausieren" : "Fokus-Audio starten"}
+          title={settings.isPlaying || settings.isPlayingTrack ? "Audio pausieren" : "Fokus-Audio starten"}
         >
-          {settings.isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
+          {settings.isPlaying || settings.isPlayingTrack ? (
+            <Pause className="h-4 w-4" />
+          ) : (
+            <Play className="h-4 w-4 ml-0.5" />
+          )}
         </button>
 
         {/* Live Audio Visualizer bars */}
@@ -298,7 +329,9 @@ export function FocusAudioPlayer() {
               key={i}
               className={cn(
                 "w-0.5 rounded-full bg-accent transition-all duration-200",
-                settings.isPlaying ? `h-${(i % 3) + 2} animate-pulse` : "h-1 opacity-30"
+                settings.isPlaying || settings.isPlayingTrack
+                  ? `h-${(i % 3) + 2} animate-pulse`
+                  : "h-1 opacity-30"
               )}
             />
           ))}
@@ -308,8 +341,10 @@ export function FocusAudioPlayer() {
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex items-center gap-1.5 text-xs font-medium text-foreground hover:text-accent transition-colors px-1"
         >
-          <span>
-            {settings.isPlaying
+          <span className="max-w-[130px] truncate">
+            {settings.isPlayingTrack && settings.currentTrack
+              ? settings.currentTrack.title
+              : settings.isPlaying
               ? `${settings.frequency !== "off" ? settings.frequency.toUpperCase() : "Sound"} · ${formatTime(timerSeconds)}`
               : "Focus Audio"}
           </span>
