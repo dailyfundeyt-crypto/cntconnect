@@ -81,20 +81,21 @@ function AuthPage() {
   const [showOriginHelp, setShowOriginHelp] = useState(false);
 
   useEffect(() => {
-    // 1. Check existing Supabase session
+    // Remove legacy fake local Google session
+    window.localStorage.removeItem("spark_google_user");
+    const go = () => {
+      const saved = window.sessionStorage.getItem("spark_auth_next");
+      window.sessionStorage.removeItem("spark_auth_next");
+      const target = saved && saved.startsWith("/") && !saved.startsWith("//") ? saved : nextTarget;
+      navigate({ to: target });
+    };
     void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        navigate({ to: nextTarget });
-      }
+      if (data.session) go();
     });
-
-    // 2. Check existing Google local session
-    if (typeof window !== "undefined") {
-      const existingGoogleUser = window.localStorage.getItem("spark_google_user");
-      if (existingGoogleUser) {
-        navigate({ to: nextTarget });
-      }
-    }
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) go();
+    });
+    return () => sub.subscription.unsubscribe();
   }, [navigate, nextTarget]);
 
   // Load Google Identity Services Script dynamically
@@ -228,18 +229,6 @@ function AuthPage() {
                 </span>
               </Button>
 
-              {/* 1-Click Instant Login for local development */}
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="w-full py-2.5 text-[11px] font-medium gap-1.5 bg-emerald-500/10 text-emerald-800 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all cursor-pointer"
-                onClick={handleDevGoogleLogin}
-                disabled={googleLoading}
-                title="Meldet dich sofort mit dailyfunde.yt@gmail.com an, ohne Google Cloud Konfiguration abzuwarten"
-              >
-                <span>⚡ Als dailyfunde.yt@gmail.com anmelden (Sofort-Start)</span>
-              </Button>
 
               <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
                 <div className="flex items-center gap-1">
