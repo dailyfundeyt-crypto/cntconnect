@@ -81,20 +81,21 @@ function AuthPage() {
   const [showOriginHelp, setShowOriginHelp] = useState(false);
 
   useEffect(() => {
-    // 1. Check existing Supabase session
+    // Remove legacy fake local Google session
+    window.localStorage.removeItem("spark_google_user");
+    const go = () => {
+      const saved = window.sessionStorage.getItem("spark_auth_next");
+      window.sessionStorage.removeItem("spark_auth_next");
+      const target = saved && saved.startsWith("/") && !saved.startsWith("//") ? saved : nextTarget;
+      navigate({ to: target });
+    };
     void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        navigate({ to: nextTarget });
-      }
+      if (data.session) go();
     });
-
-    // 2. Check existing Google local session
-    if (typeof window !== "undefined") {
-      const existingGoogleUser = window.localStorage.getItem("spark_google_user");
-      if (existingGoogleUser) {
-        navigate({ to: nextTarget });
-      }
-    }
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) go();
+    });
+    return () => sub.subscription.unsubscribe();
   }, [navigate, nextTarget]);
 
   // Load Google Identity Services Script dynamically
@@ -120,176 +121,32 @@ function AuthPage() {
     });
   }
 
-  // Google Sign-In Handler
+  // Google Sign-In via Lovable Cloud managed OAuth
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
-
     try {
-      await loadGsiScript();
-
-      if (!window.google?.accounts?.oauth2) {
-        // Fallback to Supabase OAuth redirect if GIS library is blocked
-        await fallbackSupabaseOAuth();
+      window.sessionStorage.setItem("spark_auth_next", nextTarget);
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/auth`,
+      });
+      if (result.error) {
+        toast.error("Google-Anmeldung fehlgeschlagen: " + (result.error.message ?? String(result.error)));
+        setGoogleLoading(false);
         return;
       }
-
-      const client = window.google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope:
-          "openid email profile https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
-        callback: async (tokenResponse: {
-          access_token?: string;
-          error?: string;
-          expires_in?: number;
-        }) => {
-          if (tokenResponse.error || !tokenResponse.access_token) {
-            setGoogleLoading(false);
-            if (tokenResponse.error !== "access_denied") {
-              toast.error("Google-Anmeldung abgebrochen oder fehlgeschlagen.");
-            }
-            return;
-          }
-
-          const accessToken = tokenResponse.access_token;
-          const expiresIn = tokenResponse.expires_in || 3600;
-
-          // 1. Save Calendar & API Token
-          window.localStorage.setItem("spark_gcal_token", accessToken);
-          window.localStorage.setItem(
-            "spark_gcal_token_expiry",
-            (Date.now() + expiresIn * 1000).toString()
-          );
-
-          // 2. Fetch User Profile from Google UserInfo endpoint
-          try {
-            const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            });
-
-            if (!res.ok) throw new Error("Konnte Google-Profildaten nicht abrufen");
-
-            const profile = await res.json();
-            const googleUser = {
-              id: profile.sub || crypto.randomUUID(),
-              sub: profile.sub,
-              email: profile.email,
-              name: profile.name || profile.given_name || "Google Nutzer",
-              picture: profile.picture,
-              email_verified: profile.email_verified,
-            };
-
-            // Save authenticated Google user session locally
-            window.localStorage.setItem("spark_google_user", JSON.stringify(googleUser));
-
-            // 3. Sync to Supabase in the background (create or sign in user)
-            const deterministicPass = `SparkGoogle_${profile.sub || "user"}_Sec!99`;
-            try {
-              const { error: signInErr } = await supabase.auth.signInWithPassword({
-                email: profile.email,
-                password: deterministicPass,
-              });
-
-              if (signInErr) {
-                // Account does not exist yet -> create account
-                await supabase.auth.signUp({
-                  email: profile.email,
-                  password: deterministicPass,
-                  options: {
-                    data: {
-                      full_name: googleUser.name,
-                      avatar_url: googleUser.picture,
-                    },
-                  },
-                });
-              }
-            } catch {
-              // Supabase background sync error is non-fatal since local session is active
-            }
-
-            toast.success(`Willkommen, ${googleUser.name}! Mit Google angemeldet.`);
-            navigate({ to: nextTarget });
-          } catch (profileErr: any) {
-            console.error("Profile fetch error:", profileErr);
-            toast.error("Fehler beim Abrufen des Google-Profils: " + profileErr.message);
-          } finally {
-            setGoogleLoading(false);
-          }
-        },
-      });
-
-      client.requestAccessToken({ prompt: "consent" });
+      if (result.redirected) return;
+      toast.success("Mit Google angemeldet!");
+      navigate({ to: nextTarget });
     } catch (err: any) {
-      console.warn("Direct GIS popup failed, trying Supabase OAuth redirect:", err);
-      await fallbackSupabaseOAuth();
-    }
-  }
-
-  // 1-Click Instant Login for local development
-  async function handleDevGoogleLogin() {
-    setGoogleLoading(true);
-    const googleUser = {
-      id: "google_dailyfunde",
-      sub: "191673675014",
-      email: "dailyfunde.yt@gmail.com",
-      name: "Daily Funde",
-      picture: "https://lh3.googleusercontent.com/a/default-user",
-      email_verified: true,
-    };
-
-    window.localStorage.setItem("spark_google_user", JSON.stringify(googleUser));
-    const deterministicPass = `SparkGoogle_${googleUser.sub}_Sec!99`;
-
-    try {
-      const { error: signInErr } = await supabase.auth.signInWithPassword({
-        email: googleUser.email,
-        password: deterministicPass,
-      });
-
-      if (signInErr) {
-        await supabase.auth.signUp({
-          email: googleUser.email,
-          password: deterministicPass,
-          options: {
-            data: {
-              full_name: googleUser.name,
-              avatar_url: googleUser.picture,
-            },
-          },
-        });
-      }
-    } catch {
-      // Local session is active
-    }
-
-    toast.success(`Willkommen, ${googleUser.name}! Erfolgreich als dailyfunde.yt@gmail.com angemeldet.`);
-    setGoogleLoading(false);
-    navigate({ to: nextTarget });
-  }
-
-  // Fallback: Standard Supabase OAuth Redirect
-  async function fallbackSupabaseOAuth() {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}${nextTarget}`,
-        },
-      });
-
-      if (error) {
-        const lovableResult = await lovable.auth.signInWithOAuth("google", {
-          redirect_uri: `${window.location.origin}${nextTarget}`,
-        });
-        if (lovableResult.error) {
-          toast.error("Google-Anmeldung fehlgeschlagen: " + (error.message || lovableResult.error));
-          setGoogleLoading(false);
-        }
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Google-Anmeldung fehlgeschlagen");
+      toast.error(err?.message || "Google-Anmeldung fehlgeschlagen");
       setGoogleLoading(false);
     }
   }
+
+  async function handleDevGoogleLogin() {
+    await handleGoogleSignIn();
+  }
+
 
   // Standard Email/Password Form
   async function handleSubmit(event: React.FormEvent) {
@@ -372,18 +229,6 @@ function AuthPage() {
                 </span>
               </Button>
 
-              {/* 1-Click Instant Login for local development */}
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="w-full py-2.5 text-[11px] font-medium gap-1.5 bg-emerald-500/10 text-emerald-800 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all cursor-pointer"
-                onClick={handleDevGoogleLogin}
-                disabled={googleLoading}
-                title="Meldet dich sofort mit dailyfunde.yt@gmail.com an, ohne Google Cloud Konfiguration abzuwarten"
-              >
-                <span>⚡ Als dailyfunde.yt@gmail.com anmelden (Sofort-Start)</span>
-              </Button>
 
               <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
                 <div className="flex items-center gap-1">
