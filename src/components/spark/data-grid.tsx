@@ -337,8 +337,8 @@ export function DataGrid({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-        <span className="w-20 shrink-0 font-mono text-xs text-muted-foreground">{rangeLabel}</span>
+      <div className="grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-2 rounded-lg border border-border bg-card px-2 py-2 sm:px-3">
+        <span className="max-w-16 truncate font-mono text-xs text-muted-foreground sm:w-20 sm:max-w-none">{rangeLabel}</span>
         <span className="text-muted-foreground">ƒx</span>
         <input
           value={formulaDraft ?? rawToInput(activeRaw)}
@@ -368,7 +368,7 @@ export function DataGrid({
         ref={gridRef}
         tabIndex={0}
         onKeyDown={onKeyDown}
-        className="panel overflow-auto outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+        className="panel max-w-full touch-pan-x overflow-auto overscroll-contain outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
       >
         <table className="w-full border-collapse text-sm select-none">
           <thead>
@@ -380,7 +380,7 @@ export function DataGrid({
                 <th
                   key={field.id}
                   className={cn(
-                    "min-w-40 border-b border-r border-border px-2 py-1 text-left align-bottom",
+                     "min-w-36 border-b border-r border-border px-2 py-1.5 text-left align-bottom sm:min-w-40 sm:py-1",
                     index >= range.c1 && index <= range.c2 && "bg-accent/30",
                   )}
                 >
@@ -406,7 +406,7 @@ export function DataGrid({
                         <button
                           aria-label={`Spalte ${field.name} löschen`}
                           title={`Spalte ${field.name} löschen`}
-                          className="rounded p-0.5 hover:text-destructive"
+                           className="flex h-8 w-8 items-center justify-center rounded hover:text-destructive sm:h-6 sm:w-6"
                           onClick={() => onDeleteField(field.id)}
                         >
                           <Trash2 className="h-3 w-3" />
@@ -462,9 +462,12 @@ export function DataGrid({
                     <td
                       key={field.id}
                       onMouseDown={(event) => selectCell(r, c, event.shiftKey)}
-                      onDoubleClick={() => startEdit(r, c)}
+                       onDoubleClick={() => startEdit(r, c)}
+                       onPointerUp={(event) => {
+                         if (event.pointerType === "touch") startEdit(r, c);
+                       }}
                       className={cn(
-                        "relative h-8 border-b border-r border-border px-2 align-middle",
+                         "relative h-11 border-b border-r border-border px-2 align-middle sm:h-8",
                         selected && "bg-accent/20",
                         isCursor && "ring-2 ring-inset ring-primary",
                         isErrorValue(value) && "text-destructive",
@@ -571,12 +574,12 @@ export function DataGrid({
                   );
                 })}
                 <td className="border-b border-border px-2">
-                  <div className="flex items-center gap-0.5 opacity-0 transition group-hover:opacity-100">
+                   <div className="flex items-center gap-0.5 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
                     {onDuplicateRow && (
                       <button
                         aria-label="Zeile duplizieren"
                         title="Zeile duplizieren"
-                        className="rounded p-1 text-muted-foreground hover:text-foreground"
+                         className="flex h-10 w-10 items-center justify-center rounded text-muted-foreground hover:text-foreground sm:h-7 sm:w-7"
                         onClick={() => onDuplicateRow(row.id)}
                       >
                         <Copy className="h-3.5 w-3.5" />
@@ -585,7 +588,7 @@ export function DataGrid({
                     <button
                       aria-label="Zeile löschen"
                       title="Zeile löschen"
-                      className="rounded p-1 text-muted-foreground hover:text-destructive"
+                       className="flex h-10 w-10 items-center justify-center rounded text-muted-foreground hover:text-destructive sm:h-7 sm:w-7"
                       onClick={() => onDeleteRow(row.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -598,7 +601,7 @@ export function DataGrid({
         </table>
         <button
           onClick={onAddRow}
-          className="flex w-full items-center gap-2 border-t border-border px-4 py-2.5 text-xs font-medium text-muted-foreground hover:bg-secondary/40 hover:text-foreground transition-colors"
+           className="flex min-h-11 w-full items-center gap-2 border-t border-border px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/40 hover:text-foreground"
         >
           <Plus className="h-4 w-4 text-accent" />
           <span>Neue Zeile hinzufügen</span>
@@ -614,7 +617,7 @@ export function DataGrid({
             <span className="font-mono">Mittelwert: {formatValue(selectionStats.average)}</span>
           </>
         )}
-        <span className="ml-auto text-[11px] text-muted-foreground/80">
+        <span className="ml-auto hidden text-[11px] text-muted-foreground/80 sm:inline">
           Tippen zum Bearbeiten · Enter/Tab Navigieren · Strg+C / V Kopieren &amp; Einfügen · = für Formeln
         </span>
       </div>

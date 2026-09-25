@@ -183,14 +183,14 @@ function AuthPage() {
   }
 
   return (
-    <main className="grain-bg flex min-h-screen items-center justify-center px-4 py-16">
+    <main className="grain-bg flex min-h-[100dvh] items-center justify-center px-3 py-8 sm:px-4 sm:py-16">
       <div className="w-full max-w-sm">
-        <Link to="/" className="mb-8 flex justify-center">
+        <Link to="/" className="mb-5 flex justify-center sm:mb-8">
           <SparkWordmark />
         </Link>
 
         {sentConfirm ? (
-          <div className="panel p-6 text-center space-y-3 shadow-panel border border-border">
+          <div className="panel space-y-3 border border-border p-5 text-center shadow-panel sm:p-6">
             <CheckCircle2 className="h-8 w-8 text-emerald-600 mx-auto" />
             <h1 className="text-lg font-semibold text-foreground">Bestätigung gesendet</h1>
             <p className="text-sm text-muted-foreground">
@@ -199,7 +199,7 @@ function AuthPage() {
             </p>
           </div>
         ) : (
-          <div className="panel p-6 shadow-panel border border-border bg-card rounded-xl space-y-5">
+          <div className="panel space-y-5 rounded-xl border border-border bg-card p-5 shadow-panel sm:p-6">
             <div>
               <div className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent mb-2">
                 <Sparkles className="h-3 w-3" /> Privater Workspace

@@ -26,18 +26,18 @@ function TrashPage() {
   const items = trashQuery.data ?? [];
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-3xl font-bold tracking-tight">Trash</h1>
+    <div className="mx-auto max-w-3xl px-4 py-7 sm:px-6 sm:py-12">
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Trash</h1>
       <p className="mt-2 text-muted-foreground">Restore a page or delete it permanently.</p>
 
       <div className="mt-8 space-y-2">
         {items.length === 0 && <p className="text-sm text-muted-foreground">Trash is empty.</p>}
         {items.map((doc) => (
-          <div key={doc.id} className="panel flex items-center gap-3 p-3">
-            <span className="truncate font-medium">{doc.title || "Untitled"}</span>
-            <div className="ml-auto flex gap-1">
+          <div key={doc.id} className="panel grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 p-3">
+            <span className="min-w-0 truncate font-medium">{doc.title || "Untitled"}</span>
+            <div className="flex shrink-0 gap-1">
               <Button variant="ghost" size="sm" onClick={() => restore.mutate(doc.id)}>
-                <RotateCcw className="mr-2 h-4 w-4" /> Restore
+                <RotateCcw className="h-4 w-4 sm:mr-2" /> <span className="sr-only sm:not-sr-only">Restore</span>
               </Button>
               <Button
                 variant="ghost"

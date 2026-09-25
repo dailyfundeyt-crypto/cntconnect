@@ -449,7 +449,7 @@ function WorkspaceLayout() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex min-h-[100dvh] flex-col md:flex-row">
       {/* Desktop Persistent Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
         {renderSidebar()}
@@ -457,7 +457,7 @@ function WorkspaceLayout() {
 
       {/* Mobile Drawer (Slide-Out Sidebar) */}
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-        <SheetContent side="left" className="p-0 w-72 bg-sidebar border-r border-sidebar-border">
+        <SheetContent side="left" className="w-[min(18rem,88vw)] border-r border-sidebar-border bg-sidebar p-0">
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation</SheetTitle>
           </SheetHeader>
@@ -468,8 +468,8 @@ function WorkspaceLayout() {
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile Sticky Top Header */}
-        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-card/95 px-3 py-2.5 backdrop-blur-md md:hidden">
-          <div className="flex items-center gap-2">
+        <div className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border bg-card/95 px-2 py-2 backdrop-blur-md md:hidden">
+          <div className="flex min-w-0 items-center gap-1.5">
             <Button
               variant="ghost"
               size="icon"
@@ -479,7 +479,7 @@ function WorkspaceLayout() {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <Link to="/app" className="flex items-center">
+            <Link to="/app" className="flex min-w-0 items-center overflow-hidden">
               <SparkWordmark />
             </Link>
           </div>
@@ -497,13 +497,13 @@ function WorkspaceLayout() {
         </div>
 
         {/* Content with extra bottom padding for the mobile navigation bar */}
-        <main className="min-w-0 flex-1 pb-24 md:pb-6">
+        <main className="min-w-0 flex-1 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-6">
           <Outlet />
         </main>
       </div>
 
       {/* Mobile Bottom Navigation Bar (Daumensteuerung) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t border-border bg-card/95 px-1 backdrop-blur-lg md:hidden shadow-float">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-[calc(4rem+env(safe-area-inset-bottom))] items-start justify-around border-t border-border bg-card/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-lg shadow-float md:hidden">
         {[
           {
             to: "/app",
@@ -543,7 +543,7 @@ function WorkspaceLayout() {
               key={item.to}
               to={item.to}
               className={cn(
-                "relative flex flex-1 flex-col items-center justify-center py-1 transition-colors min-h-[48px]",
+                "relative flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center py-1 transition-colors",
                 item.active
                   ? "text-accent font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -558,7 +558,7 @@ function WorkspaceLayout() {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] mt-1 leading-none">{item.label}</span>
+              <span className="mt-1 max-w-full truncate px-0.5 text-[10px] leading-none">{item.label}</span>
               {item.active && (
                 <span className="absolute bottom-1 h-0.5 w-6 rounded-full bg-accent" />
               )}
@@ -570,7 +570,7 @@ function WorkspaceLayout() {
       <SearchPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
 
       <Dialog open={newSpaceOpen} onOpenChange={setNewSpaceOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="w-[calc(100vw-1.5rem)] max-w-sm">
           <h2 className="text-lg font-semibold">New space</h2>
           <Input
             autoFocus
@@ -665,7 +665,7 @@ function SearchPalette({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg overflow-hidden p-0">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-lg overflow-hidden p-0">
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search pages and tables…"
