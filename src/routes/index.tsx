@@ -59,32 +59,32 @@ const features = [
 function Landing() {
   return (
     <div className="min-h-screen">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <SparkWordmark />
-        <div className="flex items-center gap-2">
-          <Button asChild variant="ghost">
+      <header className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 py-4 sm:px-6 sm:py-6">
+        <div className="min-w-0 overflow-hidden"><SparkWordmark /></div>
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <Button asChild variant="ghost" size="sm">
             <Link to="/auth">Sign in</Link>
           </Button>
-          <Button asChild>
-            <Link to="/app">Open workspace</Link>
+          <Button asChild size="sm">
+            <Link to="/app"><span className="sm:hidden">Open</span><span className="hidden sm:inline">Open workspace</span></Link>
           </Button>
         </div>
       </header>
 
       <main>
         <section className="grain-bg border-b border-border">
-          <div className="mx-auto max-w-6xl px-6 py-24 text-center">
-            <SparkLogo className="mx-auto h-16 w-16" />
-            <h1 className="mt-8 text-5xl font-bold tracking-tight sm:text-6xl">
+          <div className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6 sm:py-24">
+            <SparkLogo className="mx-auto h-14 w-14 sm:h-16 sm:w-16" />
+            <h1 className="mt-6 text-4xl font-bold tracking-tight sm:mt-8 sm:text-6xl">
               Docs and databases,
               <br />
               in one calm workspace
             </h1>
-            <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
+            <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:mt-6 sm:text-lg">
               Spark keeps your notes and your structured data side by side. Write a page, turn a
               list into a table, and switch to a board when you need to see progress.
             </p>
-            <div className="mt-10 flex flex-wrap justify-center gap-3">
+            <div className="mx-auto mt-8 grid max-w-xs gap-2 sm:mt-10 sm:flex sm:max-w-none sm:flex-wrap sm:justify-center sm:gap-3">
               <Button asChild size="lg">
                 <Link to="/auth">Get started</Link>
               </Button>
@@ -95,11 +95,11 @@ function Landing() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-6 py-20">
-          <h2 className="text-3xl font-bold tracking-tight">Everything in one place</h2>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Everything in one place</h2>
+          <div className="mt-7 grid gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
             {features.map((feature) => (
-              <article key={feature.title} className="panel p-6">
+              <article key={feature.title} className="panel p-5 sm:p-6">
                 <feature.icon className="h-5 w-5 text-accent" strokeWidth={2} />
                 <h3 className="mt-4 text-lg font-semibold">{feature.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{feature.text}</p>
@@ -110,7 +110,7 @@ function Landing() {
       </main>
 
       <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-8 text-sm text-muted-foreground">
+        <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-6 text-xs text-muted-foreground sm:px-6 sm:py-8 sm:text-sm">
           <SparkWordmark />
           <span>Private workspace · {new Date().getFullYear()}</span>
         </div>

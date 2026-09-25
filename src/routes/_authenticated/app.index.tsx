@@ -56,22 +56,22 @@ function WorkspaceHome() {
   const collections = collectionsQuery.data ?? [];
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
-      <h1 className="text-3xl font-bold tracking-tight">Your workspace</h1>
+    <div className="mx-auto max-w-4xl px-4 py-7 sm:px-6 sm:py-12">
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Your workspace</h1>
       <p className="mt-2 text-muted-foreground">
         Write pages, build tables, and switch between grid, gallery and board views.
       </p>
 
-      <div className="mt-8 flex flex-wrap gap-3">
-        <Button onClick={() => newDoc.mutate()} disabled={!spaceId}>
+      <div className="mt-6 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-wrap sm:gap-3">
+        <Button className="w-full sm:w-auto" onClick={() => newDoc.mutate()} disabled={!spaceId}>
           <Plus className="mr-2 h-4 w-4" /> New page
         </Button>
-        <Button variant="outline" onClick={() => newTable.mutate()} disabled={!spaceId}>
+        <Button className="w-full sm:w-auto" variant="outline" onClick={() => newTable.mutate()} disabled={!spaceId}>
           <Plus className="mr-2 h-4 w-4" /> New table
         </Button>
       </div>
 
-      <section className="mt-12">
+      <section className="mt-9 sm:mt-12">
         <h2 className="text-lg font-semibold">Recent pages</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {recentDocs.length === 0 && (
@@ -96,7 +96,7 @@ function WorkspaceHome() {
         </div>
       </section>
 
-      <section className="mt-12">
+      <section className="mt-9 sm:mt-12">
         <h2 className="text-lg font-semibold">Tables</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {collections.length === 0 && (

@@ -312,11 +312,11 @@ function CollectionPage() {
   }, [rows, searchQuery, sortFieldId, sortOrder]);
 
   if (collectionQuery.isLoading) {
-    return <div className="px-8 py-12 text-sm text-muted-foreground">Tabelle wird geladen…</div>;
+    return <div className="px-4 py-8 text-sm text-muted-foreground sm:px-8 sm:py-12">Tabelle wird geladen…</div>;
   }
   if (!collection) {
     return (
-      <div className="px-8 py-12 text-sm text-muted-foreground">
+      <div className="px-4 py-8 text-sm text-muted-foreground sm:px-8 sm:py-12">
         Diese Tabelle existiert nicht mehr oder wurde gelöscht.
       </div>
     );
@@ -328,27 +328,27 @@ function CollectionPage() {
     selectFields.find((f) => f.id === view?.config?.groupFieldId) ?? selectFields[0] ?? null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 space-y-6">
+    <div className="mx-auto max-w-7xl space-y-4 px-3 py-5 sm:space-y-6 sm:px-4 sm:py-8">
       {/* Table Title & Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/80 pb-4">
+      <div className="grid gap-3 border-b border-border/80 pb-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={() => rename.mutate(name)}
-          className="min-w-48 flex-1 border-none bg-transparent font-display text-3xl font-bold tracking-tight text-foreground outline-none hover:bg-secondary/40 rounded px-1 transition-colors"
+          className="min-w-0 w-full rounded border-none bg-transparent px-1 font-display text-2xl font-bold tracking-tight text-foreground outline-none transition-colors hover:bg-secondary/40 sm:text-3xl"
           placeholder="Unbenannte Tabelle"
         />
 
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-1 overflow-x-auto pb-1 sm:gap-2 sm:overflow-visible sm:pb-0">
           {/* Quick Add Column Popover */}
           <Popover open={newColOpen} onOpenChange={setNewColOpen}>
             <PopoverTrigger asChild>
-              <Button size="sm" variant="outline" className="gap-1.5 text-xs">
+              <Button size="sm" variant="outline" className="shrink-0 gap-1.5 text-xs">
                 <Plus className="h-3.5 w-3.5 text-accent" />
                 Spalte hinzufügen
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 space-y-3 p-4 bg-card border-border shadow-float">
+            <PopoverContent className="w-[min(20rem,calc(100vw-1.5rem))] space-y-3 border-border bg-card p-4 shadow-float">
               <div className="font-display font-semibold text-sm">Neue Spalte erstellen</div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Spaltenname</Label>
@@ -413,14 +413,14 @@ function CollectionPage() {
             </PopoverContent>
           </Popover>
 
-          <Button variant="ghost" size="sm" onClick={() => setFieldsOpen(true)} className="text-xs">
+          <Button variant="ghost" size="sm" onClick={() => setFieldsOpen(true)} className="shrink-0 text-xs">
             <Settings2 className="mr-1.5 h-3.5 w-3.5" /> Spalten verwalten
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
-            className="text-destructive text-xs hover:bg-destructive/10"
+            className="h-9 w-9 shrink-0 text-destructive hover:bg-destructive/10"
             onClick={() => {
               if (confirm("Möchtest du diese Tabelle wirklich unwiderruflich löschen?")) {
                 removeCollection.mutate();
@@ -433,9 +433,9 @@ function CollectionPage() {
       </div>
 
       {/* Toolbar: Views & Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
+      <div className="flex flex-col gap-3 border-b border-border/60 pb-3 lg:flex-row lg:items-center lg:justify-between">
         {/* View Switcher */}
-        <div className="flex items-center gap-1">
+        <div className="-mx-3 flex items-center gap-1 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
           {views.map((item) => {
             const Icon = VIEW_ICONS[item.kind] ?? Table2;
             const isActive = view?.id === item.id;
@@ -444,7 +444,7 @@ function CollectionPage() {
                 key={item.id}
                 onClick={() => setActiveViewId(item.id)}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                  "flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -456,7 +456,7 @@ function CollectionPage() {
             );
           })}
 
-          <div className="ml-2 flex items-center gap-1 border-l border-border pl-2">
+          <div className="ml-2 flex shrink-0 items-center gap-1 border-l border-border pl-2">
             <Button
               variant="ghost"
               size="sm"
@@ -485,14 +485,14 @@ function CollectionPage() {
         </div>
 
         {/* Real-time Search & Filter & Mode Toggle */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           {(!view || view.kind === "table") && (
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary/30 p-0.5 text-xs">
+            <div className="grid grid-cols-2 items-center gap-1 rounded-lg border border-border bg-secondary/30 p-0.5 text-xs">
               <button
                 type="button"
                 onClick={() => setTableMode("spreadsheet")}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all font-medium",
+                  "flex min-h-9 items-center justify-center gap-1.5 rounded-md px-2 py-1 font-medium transition-all sm:px-2.5",
                   tableMode === "spreadsheet"
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -504,7 +504,7 @@ function CollectionPage() {
                 type="button"
                 onClick={() => setTableMode("database")}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all font-medium",
+                  "flex min-h-9 items-center justify-center gap-1.5 rounded-md px-2 py-1 font-medium transition-all sm:px-2.5",
                   tableMode === "database"
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -515,13 +515,13 @@ function CollectionPage() {
             </div>
           )}
 
-          <div className="relative">
+          <div className="relative min-w-0 flex-1 sm:flex-none">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tabelle durchsuchen..."
-              className="h-8 pl-8 pr-3 text-xs w-44 bg-card border-border"
+              className="h-10 w-full border-border bg-card pl-8 pr-3 text-xs sm:h-8 sm:w-44"
             />
           </div>
 

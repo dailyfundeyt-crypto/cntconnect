@@ -161,18 +161,18 @@ function DocumentPage() {
   }, [content, allDocs]);
 
   if (docQuery.isLoading) {
-    return <div className="px-8 py-12 text-sm text-muted-foreground">Lade Seite…</div>;
+    return <div className="px-4 py-8 text-sm text-muted-foreground sm:px-8 sm:py-12">Lade Seite…</div>;
   }
 
   if (!doc) {
-    return <div className="px-8 py-12 text-sm text-muted-foreground">Diese Seite existiert nicht mehr.</div>;
+    return <div className="px-4 py-8 text-sm text-muted-foreground sm:px-8 sm:py-12">Diese Seite existiert nicht mehr.</div>;
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10 space-y-6">
+    <div className="mx-auto max-w-4xl space-y-5 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-10">
       {/* Top Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/70 pb-4">
-        <div className="flex items-center gap-1.5">
+      <div className="-mx-4 flex items-center gap-3 overflow-x-auto border-b border-border/70 px-4 pb-3 sm:mx-0 sm:justify-between sm:overflow-visible sm:px-0 sm:pb-4">
+        <div className="flex shrink-0 items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
@@ -193,7 +193,7 @@ function DocumentPage() {
           </Button>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-1">
           <Button
             variant="outline"
             size="sm"
@@ -244,7 +244,7 @@ function DocumentPage() {
           setTitle(event.target.value);
           queueSave({ title: event.target.value });
         }}
-        className="w-full border-none bg-transparent font-display text-4xl font-bold tracking-tight outline-none placeholder:text-muted-foreground"
+        className="w-full border-none bg-transparent font-display text-3xl font-bold tracking-tight outline-none placeholder:text-muted-foreground sm:text-4xl"
       />
 
       {/* Content Editor / Reader */}
@@ -269,14 +269,14 @@ function DocumentPage() {
 
       {/* Obsidian-Style Backlinks & Outgoing Links Panel */}
       <div className="border-t border-border/80 pt-8 mt-8 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+          <div className="flex min-w-0 items-start gap-2">
             <Share2 className="h-4 w-4 text-accent" />
             <h3 className="font-display font-semibold text-sm text-foreground">
-              Verknüpfungen & Backlinks (Obsidian Graph-Netzwerk)
+              Verknüpfungen &amp; Backlinks
             </h3>
           </div>
-          <span className="text-xs font-mono text-muted-foreground">
+          <span className="text-right font-mono text-xs text-muted-foreground">
             {backlinks.length} eingehend • {outgoingTitles.length} ausgehend
           </span>
         </div>
