@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 export interface GraphNode {
   id: string;
   label: string;
-  type: "doc" | "table" | "book" | "video" | "health";
+  type: "doc" | "table" | "book" | "video" | "health" | "brain" | "brain-note" | "task";
   x: number;
   y: number;
   vx: number;
@@ -314,7 +314,7 @@ export function KnowledgeGraph({ nodes: initialNodes, links, height = 600 }: Kno
           </div>
 
           <div className="flex items-center gap-1 rounded-lg border border-border bg-card/90 p-0.5 text-xs backdrop-blur-md">
-            {["all", "doc", "table", "book", "video"].map((type) => (
+            {["all", "doc", "table", "book", "brain", "task"].map((type) => (
               <button
                 key={type}
                 onClick={() => setFilterType(type)}
@@ -325,7 +325,7 @@ export function KnowledgeGraph({ nodes: initialNodes, links, height = 600 }: Kno
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}
               >
-                {type === "all" ? "Alle" : type === "doc" ? "Notizen" : type === "table" ? "Tabellen" : type === "book" ? "Bücher" : "Videos"}
+                {type === "all" ? "Alle" : type === "doc" ? "Notizen" : type === "table" ? "Tabellen" : type === "book" ? "Bücher" : type === "brain" ? "Brain" : "Aufgaben"}
               </button>
             ))}
           </div>

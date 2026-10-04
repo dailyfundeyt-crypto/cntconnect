@@ -9,6 +9,7 @@ import {
   type GraphNode,
 } from "@/components/spark/knowledge-graph";
 import { listDocuments, listSpaces, listCollections } from "@/lib/spark";
+import { getAgenda, getBrainContext } from "@/lib/mcp-client";
 
 export const Route = createFileRoute("/_authenticated/app/graph")({
   head: () => ({
@@ -37,8 +38,26 @@ function GraphPage() {
     enabled: !!spaceId,
   });
 
+  // Brain agenda: tasks + brain context notes as graph nodes
+  const today = new Date().toISOString().split("T")[0]!;
+  const brainAgendaQuery = useQuery({
+    queryKey: ["brain", "agenda-graph", today],
+    queryFn: () => getAgenda(today, false),
+    retry: 1,
+    staleTime: 60_000,
+  });
+
+  // Brain context: recent notes for the graph
+  const brainContextQuery = useQuery({
+    queryKey: ["brain", "context-graph"],
+    queryFn: () => getBrainContext("recent", 3, 6, 200),
+    retry: 1,
+    staleTime: 120_000,
+  });
+
   const docs = docsQuery.data ?? [];
   const collections = collectionsQuery.data ?? [];
+  const brainAgenda = brainAgendaQuery.data;
 
   // Construct nodes and parse [[wikilinks]]
   const { nodes, links } = useMemo(() => {
@@ -136,12 +155,70 @@ function GraphPage() {
       href: "/app/health",
     });
 
+    // Brain node (if agenda or context is loaded)
+    const hasBrainData = brainAgendaQuery.data || brainContextQuery.data;
+
+    if (hasBrainData) {
+      const brainContext = brainContextQuery.data;
+      const brainAgenda = brainAgendaQuery.data;
+
+      rawNodes.push({
+        id: "node-brain",
+        label: "Brain",
+        type: "brain",
+        x: 0,
+        y: 0,
+        vx: 0,
+        vy: 0,
+        radius: 16,
+        color: "oklch(0.55 0.16 300)", // Purple
+        connections: (brainContext?.notes?.length ?? 0) + (brainAgenda?.tasks?.length ?? 0),
+        href: "/app/brain",
+      });
+
+      // Add notes from brain context as brain-type nodes
+      (brainContext?.notes ?? []).forEach((n) => {
+        rawNodes.push({
+          id: `brain-${n.id}`,
+          label: n.title || "Untitled",
+          type: "brain-note",
+          x: 0,
+          y: 0,
+          vx: 0,
+          vy: 0,
+          radius: 8,
+          color: "oklch(0.6 0.12 300)", // Light purple
+          connections: 1,
+          href: `/app/brain/${n.id}`,
+        });
+        rawLinks.push({ source: "node-brain", target: `brain-${n.id}` });
+      });
+
+      // Add open tasks as small nodes
+      (brainAgenda?.tasks ?? []).filter((t) => !t.isDone).forEach((task) => {
+        rawNodes.push({
+          id: `task-${task.id}`,
+          label: task.text.slice(0, 24) + (task.text.length > 24 ? "…" : ""),
+          type: "task",
+          x: 0,
+          y: 0,
+          vx: 0,
+          vy: 0,
+          radius: 6,
+          color: "oklch(0.7 0.18 48)", // Orange accent
+          connections: 1,
+          href: "/app/brain",
+        });
+        rawLinks.push({ source: "node-brain", target: `task-${task.id}` });
+      });
+    }
+
     if (docs[0]) {
       rawLinks.push({ source: "node-health-system", target: docs[0].id });
     }
 
     return { nodes: rawNodes, links: rawLinks };
-  }, [docs, collections]);
+  }, [docs, collections, brainAgendaQuery.data, brainContextQuery.data]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 space-y-6">

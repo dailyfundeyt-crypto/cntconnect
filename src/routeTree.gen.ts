@@ -18,6 +18,7 @@ import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/ap
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as AuthenticatedAppAudioRouteImport } from './routes/_authenticated/app.audio'
+import { Route as AuthenticatedAppBrainRouteImport } from './routes/_authenticated/app.brain'
 import { Route as AuthenticatedAppCanvasRouteImport } from './routes/_authenticated/app.canvas'
 import { Route as AuthenticatedAppGraphRouteImport } from './routes/_authenticated/app.graph'
 import { Route as AuthenticatedAppHealthRouteImport } from './routes/_authenticated/app.health'
@@ -25,6 +26,7 @@ import { Route as AuthenticatedAppLearnRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppPlanRouteImport } from './routes/_authenticated/app.plan'
 import { Route as AuthenticatedAppStudioRouteImport } from './routes/_authenticated/app.studio'
 import { Route as AuthenticatedAppTrashRouteImport } from './routes/_authenticated/app.trash'
+import { Route as AuthenticatedAppBrainNoteIdRouteImport } from './routes/_authenticated/app.brain.$noteId'
 import { Route as AuthenticatedAppDocDocIdRouteImport } from './routes/_authenticated/app.doc.$docId'
 import { Route as AuthenticatedAppTableTableIdRouteImport } from './routes/_authenticated/app.table.$tableId'
 
@@ -73,6 +75,11 @@ const AuthenticatedAppAudioRoute = AuthenticatedAppAudioRouteImport.update({
   path: '/audio',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppBrainRoute = AuthenticatedAppBrainRouteImport.update({
+  id: '/brain',
+  path: '/brain',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppCanvasRoute = AuthenticatedAppCanvasRouteImport.update({
   id: '/canvas',
   path: '/canvas',
@@ -108,6 +115,12 @@ const AuthenticatedAppTrashRoute = AuthenticatedAppTrashRouteImport.update({
   path: '/trash',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppBrainNoteIdRoute =
+  AuthenticatedAppBrainNoteIdRouteImport.update({
+    id: '/$noteId',
+    path: '/$noteId',
+    getParentRoute: () => AuthenticatedAppBrainRoute,
+  } as any)
 const AuthenticatedAppDocDocIdRoute =
   AuthenticatedAppDocDocIdRouteImport.update({
     id: '/doc/$docId',
@@ -129,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/app/audio': typeof AuthenticatedAppAudioRoute
+  '/app/brain': typeof AuthenticatedAppBrainRouteWithChildren
   '/app/canvas': typeof AuthenticatedAppCanvasRoute
   '/app/graph': typeof AuthenticatedAppGraphRoute
   '/app/health': typeof AuthenticatedAppHealthRoute
@@ -137,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/app/studio': typeof AuthenticatedAppStudioRoute
   '/app/trash': typeof AuthenticatedAppTrashRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/brain/$noteId': typeof AuthenticatedAppBrainNoteIdRoute
   '/app/doc/$docId': typeof AuthenticatedAppDocDocIdRoute
   '/app/table/$tableId': typeof AuthenticatedAppTableTableIdRoute
 }
@@ -147,6 +162,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/app/audio': typeof AuthenticatedAppAudioRoute
+  '/app/brain': typeof AuthenticatedAppBrainRouteWithChildren
   '/app/canvas': typeof AuthenticatedAppCanvasRoute
   '/app/graph': typeof AuthenticatedAppGraphRoute
   '/app/health': typeof AuthenticatedAppHealthRoute
@@ -155,6 +171,7 @@ export interface FileRoutesByTo {
   '/app/studio': typeof AuthenticatedAppStudioRoute
   '/app/trash': typeof AuthenticatedAppTrashRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/brain/$noteId': typeof AuthenticatedAppBrainNoteIdRoute
   '/app/doc/$docId': typeof AuthenticatedAppDocDocIdRoute
   '/app/table/$tableId': typeof AuthenticatedAppTableTableIdRoute
 }
@@ -168,6 +185,7 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/app/audio': typeof AuthenticatedAppAudioRoute
+  '/_authenticated/app/brain': typeof AuthenticatedAppBrainRouteWithChildren
   '/_authenticated/app/canvas': typeof AuthenticatedAppCanvasRoute
   '/_authenticated/app/graph': typeof AuthenticatedAppGraphRoute
   '/_authenticated/app/health': typeof AuthenticatedAppHealthRoute
@@ -176,6 +194,7 @@ export interface FileRoutesById {
   '/_authenticated/app/studio': typeof AuthenticatedAppStudioRoute
   '/_authenticated/app/trash': typeof AuthenticatedAppTrashRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/brain/$noteId': typeof AuthenticatedAppBrainNoteIdRoute
   '/_authenticated/app/doc/$docId': typeof AuthenticatedAppDocDocIdRoute
   '/_authenticated/app/table/$tableId': typeof AuthenticatedAppTableTableIdRoute
 }
@@ -189,6 +208,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/.lovable/oauth/consent'
     | '/app/audio'
+    | '/app/brain'
     | '/app/canvas'
     | '/app/graph'
     | '/app/health'
@@ -197,6 +217,7 @@ export interface FileRouteTypes {
     | '/app/studio'
     | '/app/trash'
     | '/app/'
+    | '/app/brain/$noteId'
     | '/app/doc/$docId'
     | '/app/table/$tableId'
   fileRoutesByTo: FileRoutesByTo
@@ -207,6 +228,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/.lovable/oauth/consent'
     | '/app/audio'
+    | '/app/brain'
     | '/app/canvas'
     | '/app/graph'
     | '/app/health'
@@ -215,6 +237,7 @@ export interface FileRouteTypes {
     | '/app/studio'
     | '/app/trash'
     | '/app'
+    | '/app/brain/$noteId'
     | '/app/doc/$docId'
     | '/app/table/$tableId'
   id:
@@ -227,6 +250,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/.lovable/oauth/consent'
     | '/_authenticated/app/audio'
+    | '/_authenticated/app/brain'
     | '/_authenticated/app/canvas'
     | '/_authenticated/app/graph'
     | '/_authenticated/app/health'
@@ -235,6 +259,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/studio'
     | '/_authenticated/app/trash'
     | '/_authenticated/app/'
+    | '/_authenticated/app/brain/$noteId'
     | '/_authenticated/app/doc/$docId'
     | '/_authenticated/app/table/$tableId'
   fileRoutesById: FileRoutesById
@@ -313,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAudioRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/brain': {
+      id: '/_authenticated/app/brain'
+      path: '/brain'
+      fullPath: '/app/brain'
+      preLoaderRoute: typeof AuthenticatedAppBrainRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/canvas': {
       id: '/_authenticated/app/canvas'
       path: '/canvas'
@@ -362,6 +394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppTrashRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/brain/$noteId': {
+      id: '/_authenticated/app/brain/$noteId'
+      path: '/$noteId'
+      fullPath: '/app/brain/$noteId'
+      preLoaderRoute: typeof AuthenticatedAppBrainNoteIdRouteImport
+      parentRoute: typeof AuthenticatedAppBrainRoute
+    }
     '/_authenticated/app/doc/$docId': {
       id: '/_authenticated/app/doc/$docId'
       path: '/doc/$docId'
@@ -379,8 +418,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAppBrainRouteChildren {
+  AuthenticatedAppBrainNoteIdRoute: typeof AuthenticatedAppBrainNoteIdRoute
+}
+
+const AuthenticatedAppBrainRouteChildren: AuthenticatedAppBrainRouteChildren = {
+  AuthenticatedAppBrainNoteIdRoute: AuthenticatedAppBrainNoteIdRoute,
+}
+
+const AuthenticatedAppBrainRouteWithChildren =
+  AuthenticatedAppBrainRoute._addFileChildren(
+    AuthenticatedAppBrainRouteChildren,
+  )
+
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAudioRoute: typeof AuthenticatedAppAudioRoute
+  AuthenticatedAppBrainRoute: typeof AuthenticatedAppBrainRouteWithChildren
   AuthenticatedAppCanvasRoute: typeof AuthenticatedAppCanvasRoute
   AuthenticatedAppGraphRoute: typeof AuthenticatedAppGraphRoute
   AuthenticatedAppHealthRoute: typeof AuthenticatedAppHealthRoute
@@ -395,6 +448,7 @@ interface AuthenticatedAppRouteChildren {
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAudioRoute: AuthenticatedAppAudioRoute,
+  AuthenticatedAppBrainRoute: AuthenticatedAppBrainRouteWithChildren,
   AuthenticatedAppCanvasRoute: AuthenticatedAppCanvasRoute,
   AuthenticatedAppGraphRoute: AuthenticatedAppGraphRoute,
   AuthenticatedAppHealthRoute: AuthenticatedAppHealthRoute,

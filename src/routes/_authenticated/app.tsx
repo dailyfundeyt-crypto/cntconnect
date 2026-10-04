@@ -294,6 +294,13 @@ function WorkspaceLayout() {
             onClick={onItemClick}
           />
           <SidebarLink
+            to="/app/brain"
+            active={pathname === "/app/brain" || pathname.startsWith("/app/brain/")}
+            icon={<Brain className="h-4 w-4 text-indigo-600" />}
+            label="Brain & Aufgaben"
+            onClick={onItemClick}
+          />
+          <SidebarLink
             to="/app/graph"
             active={pathname === "/app/graph"}
             icon={<Network className="h-4 w-4 text-blue-600" />}
