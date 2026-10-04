@@ -134,6 +134,362 @@ export type Database = {
           },
         ]
       }
+      brain_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          parent_path: string | null
+          path: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          parent_path?: string | null
+          path: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          parent_path?: string | null
+          path?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      brain_files: {
+        Row: {
+          drive_file_id: string | null
+          id: string
+          mime_type: string
+          name: string
+          note_id: string | null
+          path: string
+          sha256: string | null
+          size_bytes: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          drive_file_id?: string | null
+          id?: string
+          mime_type?: string
+          name: string
+          note_id?: string | null
+          path: string
+          sha256?: string | null
+          size_bytes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          drive_file_id?: string | null
+          id?: string
+          mime_type?: string
+          name?: string
+          note_id?: string | null
+          path?: string
+          sha256?: string | null
+          size_bytes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brain_files_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "brain_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brain_import_log: {
+        Row: {
+          created_at: string
+          id: string
+          is_dry_run: boolean
+          run_id: string
+          source: string
+          source_path: string | null
+          started_at: string
+          stats: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_dry_run?: boolean
+          run_id: string
+          source?: string
+          source_path?: string | null
+          started_at?: string
+          stats?: Json
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_dry_run?: boolean
+          run_id?: string
+          source?: string
+          source_path?: string | null
+          started_at?: string
+          stats?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      brain_mood_entries: {
+        Row: {
+          created_at: string
+          entry_date: string
+          id: string
+          label: string | null
+          note: string | null
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          entry_date: string
+          id?: string
+          label?: string | null
+          note?: string | null
+          updated_at?: string
+          user_id?: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          entry_date?: string
+          id?: string
+          label?: string | null
+          note?: string | null
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      brain_note_links: {
+        Row: {
+          created_at: string
+          id: string
+          is_embedded: boolean
+          link_text: string
+          raw_target: string
+          source_note_id: string
+          target_file_path: string | null
+          target_note_id: string | null
+          target_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_embedded?: boolean
+          link_text?: string
+          raw_target: string
+          source_note_id: string
+          target_file_path?: string | null
+          target_note_id?: string | null
+          target_path: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_embedded?: boolean
+          link_text?: string
+          raw_target?: string
+          source_note_id?: string
+          target_file_path?: string | null
+          target_note_id?: string | null
+          target_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brain_note_links_source_note_id_fkey"
+            columns: ["source_note_id"]
+            isOneToOne: false
+            referencedRelation: "brain_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brain_note_links_target_note_id_fkey"
+            columns: ["target_note_id"]
+            isOneToOne: false
+            referencedRelation: "brain_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brain_notes: {
+        Row: {
+          content: string
+          content_hash: string
+          created_at: string
+          drive_file_id: string | null
+          folder_id: string | null
+          frontmatter: Json
+          id: string
+          is_starred: boolean
+          mtime_ms: number
+          path: string
+          size_bytes: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          content_hash: string
+          created_at?: string
+          drive_file_id?: string | null
+          folder_id?: string | null
+          frontmatter?: Json
+          id?: string
+          is_starred?: boolean
+          mtime_ms?: number
+          path: string
+          size_bytes?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          content?: string
+          content_hash?: string
+          created_at?: string
+          drive_file_id?: string | null
+          folder_id?: string | null
+          frontmatter?: Json
+          id?: string
+          is_starred?: boolean
+          mtime_ms?: number
+          path?: string
+          size_bytes?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brain_notes_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "brain_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brain_tasks: {
+        Row: {
+          created_at: string
+          due_date: string | null
+          id: string
+          is_done: boolean
+          is_done_today: boolean
+          note_id: string | null
+          position: number
+          tags: string[]
+          text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          is_done?: boolean
+          is_done_today?: boolean
+          note_id?: string | null
+          position?: number
+          tags?: string[]
+          text: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          is_done?: boolean
+          is_done_today?: boolean
+          note_id?: string | null
+          position?: number
+          tags?: string[]
+          text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brain_tasks_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "brain_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brain_work_sessions: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          id: string
+          label: string | null
+          minutes: number | null
+          note_id: string | null
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          label?: string | null
+          minutes?: number | null
+          note_id?: string | null
+          started_at: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          label?: string | null
+          minutes?: number | null
+          note_id?: string | null
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brain_work_sessions_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "brain_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collections: {
         Row: {
           created_at: string

@@ -14,7 +14,10 @@
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { promises as fs } from "node:fs";
+import * as path from "node:path";
 import { parseVault, type ParsedNote } from "./vault-parser";
+import { getFileStore } from "../src/lib/files/index";
 
 // ---------------------------------------------------------------------------
 // Argument-Parsing
@@ -302,8 +305,9 @@ async function main(): Promise<void> {
     const rows = note.links.map((l) => ({
       user_id: userId,
       source_note_id: noteId,
-      target_path: l.targetPath,
-      target_note_id: noteIdByPath.get(l.targetPath) ?? null,
+      target_path: l.targetPath || l.mediaPath,
+      target_note_id: l.targetPath ? (noteIdByPath.get(l.targetPath) ?? null) : null,
+      target_file_path: l.mediaPath,
       link_text: l.linkText,
       raw_target: l.rawTarget,
       is_embedded: l.isEmbedded,
@@ -317,12 +321,64 @@ async function main(): Promise<void> {
   }
   console.log(`Links geschrieben: ${linkCount}`);
 
-  // 8. Medien als Metadaten (Upload in Phase 3 folgt)
+  // 8. Medien: Metadaten speichern, Upload nach Drive wenn konfiguriert.
   if (vault.files.length > 0) {
+    const store = getFileStore(null);
+    const driveActive = store.isConfigured();
+
     console.log("-".repeat(64));
-    console.log(`Medien: ${vault.files.length} Dateien erkannt.`);
-    console.log("Nur Metadaten werden jetzt gespeichert, der Upload nach Google Drive");
-    console.log("erfolgt mit dem Drive-Adapter. Ohne drive_file_id bleiben sie lokal.");
+    console.log(`Dateispeicher:   ${driveActive ? store.kind : "nicht konfiguriert"}`);
+
+    let mediaRows = 0;
+    let uploaded = 0;
+    let uploadSkipped = 0;
+
+    for (const file of vault.files) {
+      const abs = path.join(vaultPath, file.path);
+
+      let storedId: string | null = null;
+      if (driveActive) {
+        try {
+          const stored = await store.put({
+            name: file.name,
+            mimeType: file.mimeType,
+            source: abs,
+          });
+          storedId = stored.id;
+          uploaded++;
+        } catch (error) {
+          // Ein fehlgeschlagener Upload darf den Import nicht abbrechen.
+          console.error(`  Upload fehlgeschlagen ${file.path}: ${(error as Error).message}`);
+        }
+      } else {
+        uploadSkipped++;
+      }
+
+      const row: Record<string, unknown> = {
+        user_id: userId,
+        name: file.name,
+        path: file.path,
+        mime_type: file.mimeType,
+        size_bytes: file.sizeBytes,
+        drive_file_id: storedId,
+      };
+      const { error } = await supabase
+        .from("brain_files")
+        .upsert(row, { onConflict: "user_id,path" });
+      if (error) {
+        console.error(`Medien-Fehler ${file.path}: ${error.message}`);
+        continue;
+      }
+      mediaRows++;
+    }
+
+    console.log(`Medien gespeichert: ${mediaRows}`);
+    if (driveActive) {
+      console.log(`  hochgeladen:       ${uploaded}`);
+    } else {
+      console.log(`  nicht hochgeladen: ${uploadSkipped} (Metadaten liegen in Supabase)`);
+      console.log("  Für Google Drive: GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON setzen und erneut laufen lassen.");
+    }
   }
 
   // 9. Journal

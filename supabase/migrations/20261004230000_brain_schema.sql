@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS public.brain_note_links (
   source_note_id uuid NOT NULL REFERENCES public.brain_notes(id) ON DELETE CASCADE,
   target_path text NOT NULL,
   target_note_id uuid REFERENCES public.brain_notes(id) ON DELETE SET NULL,
+  target_file_path text,
   link_text text NOT NULL DEFAULT '',
   raw_target text NOT NULL,
   is_embedded boolean NOT NULL DEFAULT false,
