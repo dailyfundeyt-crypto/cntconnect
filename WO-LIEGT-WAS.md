@@ -176,14 +176,39 @@ Dokumente? Dann brauche ich den genauen Namen.
 
 | Was | Wert |
 |---|---|
-| Projekt | `vgdqauqqkjwwumhzbuea` |
-| Adresse | `https://vgdqauqqkjwwumhzbuea.supabase.co` |
-| In der Cloud **vorhanden** | `profiles`, `spaces`, `documents`, `collections`, `collection_fields`, `collection_rows`, `collection_views`, `slack_bot_settings` |
-| In der Cloud **fehlt** | alle 8 `brain_*`-Tabellen |
-| Zugangsdaten | `C:\workspace\cntconnect\.env` |
+| Projekt | `vktilvpwbhrddjytilvs` |
+| Adresse | `https://vktilvpwbhrddjytilvs.supabase.co` |
+| In der Cloud **vorhanden** (verifiziert 5.10.2026 per API) | `profiles`, `spaces`, `documents`, `collections`, `collection_fields`, `collection_rows`, `collection_views`, `slack_bot_settings`, `brain_files`, `brain_folders`, `brain_import_log`, `brain_mood_entries`, `brain_note_links`, `brain_notes`, `brain_tasks`, `brain_work_sessions` — **16 Tabellen** |
+| In der Cloud **fehlt** | nichts von obiger Liste. `brain_notes.drive_file_id` per API verifiziert vorhanden (Kontrolltest mit erfundener Spalte schlug fehl) |
+| Neu, Migration nur als Datei | `agent_roles`, `agent_role_tools`, `agent_registry` (RBAC) — im Repo, **noch nicht in der Cloud ausgeführt** |
 
-**Heute (5.10.) sind noch keine Notizen in der Cloud.** Die 70 Notizen liegen nur
-auf dem PC. Das ist der offene Punkt.
+**Notizen in der Cloud:** Stand 5.10.2026 weiterhin keine. Die 70 Notizen liegen
+nur auf dem PC, `scripts/migrate-vault.ts` ist der Importweg.
+
+> **Korrektur 5.10.2026, 18:30 Uhr:** Dieser Abschnitt behauptete previously,
+> alle 8 `brain_*`-Tabellen fehlten. Das war **falsch** — die Tabellen wurden
+> heute über den Supabase SQL-Editor angelegt und per `information_schema`
+> bestätigt. Wer das noch anderswo liest: der alte Stand war vor dem heutigen
+> Setup-Lauf.
+
+---
+
+## 6b. Editor-Entscheidung (verbindlich, 5.10.2026)
+
+**Beschlossen:** Alte Notizen bleiben **Plaintext** und funktionieren unverändert.
+Neue Notizen dürfen Rich-Text/Markdown bekommen. **Keine destruktive Migration.**
+
+| Regel | Detail |
+|---|---|
+| Bestehende Inhalte | bleiben Plaintext in `brain_notes.content` / `documents.content`, keine Konvertierung, kein `drop`, kein `alter column` |
+| Neue Notizen | Rich-Text/Markdown erlaubt, gespeichert weiterhin als Text/Markdown |
+| Laden | Detect-and-render: Plaintext wird wie heute dargestellt, Markdown/HTML wird erkannt und entsprechend gerendert. Beides muss gleichzeitig funktionieren |
+| Speichern | immer als das, was gelesen wurde — kein stilles Umschreiben des Formats beim Speichern |
+| Migration | **verboten.** Nur additive, rückwärtskompatible Spalten wenn überhaupt |
+
+**Merksatz für jeden Agent:** Wenn du an `content`-Spalten rührst, prüfe zuerst,
+ob alte Notizen danach noch lesbar sind. Ein Umbau, der `content` umdeutet,
+ist auch dann falsch, wenn die Typen passen.
 
 ---
 
@@ -194,3 +219,6 @@ auf dem PC. Das ist der offene Punkt.
 3. **Der alte Code-Pfad ist tabu:** `...\007_Connect\003_Code\cntconnect`
 4. **Kein iCloud/Apple hier** — falls doch, erst mit mir klären
 5. **`.env` nie committen**, service_role-Key niemals ins Frontend
+6. **Editor: keine destruktive Migration.** Alte Notizen bleiben Plaintext. Siehe Abschnitt 6b
+7. **In der Cloud sind 16 Tabellen**, nicht 8. Siehe Abschnitt 6
+   200|

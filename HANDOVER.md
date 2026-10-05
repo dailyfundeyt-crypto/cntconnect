@@ -8,7 +8,7 @@
 |---|---|
 | **Arbeitsverzeichnis (ab jetzt hier)** | `C:\workspace\cntconnect` |
 | Alter, veralteter Pfad | `C:\Users\Kunc GmbH\Documents\...\cntconnect` — 74 Commits, gleicher Stand, aber mit uncommitteter Phase-5/6-Arbeit. **Nicht weiterbearbeiten.** |
-| Cloud-Datenbank | Supabase-Projekt `vgdqauqqkjwwumhzbuea` (gehostet, unverändert) |
+| Cloud-Datenbank | Supabase-Projekt `vktilvpwbhrddjytilvs` (gehostet, unverändert) |
 | GitHub | `origin/main`, `main` ist **17 Commits voraus**, nicht gepusht |
 
 ## Was gerade passiert ist
