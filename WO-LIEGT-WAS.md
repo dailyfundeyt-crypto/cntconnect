@@ -174,22 +174,65 @@ Dokumente? Dann brauche ich den genauen Namen.
 
 ## 6. Die Cloud — Supabase
 
+> **Aktiv ist nur EIN Projekt.** Stand 5.10.2026, 18:50 Uhr. Alles andere ist
+> verworfen, bitte nirgends mehr referenzieren.
+
 | Was | Wert |
 |---|---|
-| Projekt | `vktilvpwbhrddjytilvs` |
-| Adresse | `https://vktilvpwbhrddjytilvs.supabase.co` |
-| In der Cloud **vorhanden** (verifiziert 5.10.2026 per API) | `profiles`, `spaces`, `documents`, `collections`, `collection_fields`, `collection_rows`, `collection_views`, `slack_bot_settings`, `brain_files`, `brain_folders`, `brain_import_log`, `brain_mood_entries`, `brain_note_links`, `brain_notes`, `brain_tasks`, `brain_work_sessions` — **16 Tabellen** |
-| In der Cloud **fehlt** | nichts von obiger Liste. `brain_notes.drive_file_id` per API verifiziert vorhanden (Kontrolltest mit erfundener Spalte schlug fehl) |
-| Neu, Migration nur als Datei | `agent_roles`, `agent_role_tools`, `agent_registry` (RBAC) — im Repo, **noch nicht in der Cloud ausgeführt** |
+| **Aktives Projekt** | `vktilvpwbhrddjytilvs` |
+| **Adresse** | `https://vktilvpwbhrddjytilvs.supabase.co` |
+| Verifiziert per API am 5.10.2026 | 16 Tabellen vorhanden, siehe unten |
+| Zugangsdaten | `C:\workspace\cntconnect\.env` (git-ignoriert) |
+| Vorlage | `C:\workspace\cntconnect\.env.example` |
+| Service-Role-Key-Format | neu: `sb_secret_…`, **kein JWT** |
+| Publishable-Key-Format | neu: `sb_publishable_…`, **kein JWT** |
+
+### Verworfene Projekte (NICHT mehr benutzen)
+
+| Projekt-ID | Status | Quelle |
+|---|---|---|
+| `vgdqauqqkjwwumhzbuea` | **verworfen, tot.** Tauchte in `WO-LIEGT-WAS.md` als vermeintlich aktiv auf — falsch. Wurde heute durch `vktilvpwbhrddjytilvs` ersetzt. Wurde offenbar nie produktiv genutzt; ein Projektwechsel fand statt, ohne dass er in Commit-Messages dokumentiert wurde. | Doku-Korrektur 5.10.2026 |
+
+### Tabellen in der aktiven Cloud (`vktilvpwbhrddjytilvs`)
+
+**Verifiziert am 5.10.2026 per REST-API** (Kontrolltest mit erfundener Spalte
+schlug fehl, daher belastbar):
+
+| Tabelle | Zweck |
+|---|---|
+| `profiles` | User-Profile |
+| `spaces` | Workspaces |
+| `documents` | Dokumente |
+| `collections` | Sammlungen |
+| `collection_fields` | Sammlungs-Schemata |
+| `collection_rows` | Sammlungs-Zeilen |
+| `collection_views` | Sammlungs-Ansichten |
+| `slack_bot_settings` | Slack-Integration |
+| `brain_files` | Brain: Datei-Metadaten |
+| `brain_folders` | Brain: Ordner |
+| `brain_import_log` | Brain: Import-Historie |
+| `brain_mood_entries` | Brain: Stimmungs-Einträge |
+| `brain_note_links` | Brain: Notiz-Verknüpfungen |
+| `brain_notes` | Brain: Notizen (`drive_file_id` vorhanden) |
+| `brain_tasks` | Brain: Aufgaben |
+| `brain_work_sessions` | Brain: Arbeits-Sessions |
+
+**16 Tabellen, alle vorhanden.** Schema-Quelle für `brain_*`:
+`supabase/migrations/20261004230000_brain_schema.sql`.
+
+### Migrationen, die noch nicht in der Cloud laufen
+
+| Datei | Zweck | Status |
+|---|---|---|
+| `supabase/migrations/20261005210000_agent_rbac.sql` | RBAC: `agent_roles`, `agent_role_tools`, `agent_registry` | im Repo, **noch nicht in der Cloud ausgeführt**. User führt sie später im SQL-Editor aus. |
 
 **Notizen in der Cloud:** Stand 5.10.2026 weiterhin keine. Die 70 Notizen liegen
 nur auf dem PC, `scripts/migrate-vault.ts` ist der Importweg.
 
-> **Korrektur 5.10.2026, 18:30 Uhr:** Dieser Abschnitt behauptete previously,
-> alle 8 `brain_*`-Tabellen fehlten. Das war **falsch** — die Tabellen wurden
-> heute über den Supabase SQL-Editor angelegt und per `information_schema`
-> bestätigt. Wer das noch anderswo liest: der alte Stand war vor dem heutigen
-> Setup-Lauf.
+> **Versions-Hinweis:** Das Schema, das in der Cloud läuft, ist mit
+> `supabase/SETUP-ALLES.sql` einmalig von Hand eingespielt worden. Diese Datei
+> ist neu im Working Tree (Stand 5.10.2026) und wird committet, sobald RBAC
+> fertig ist, damit die Cloud reproduzierbar wird.
 
 ---
 
@@ -221,4 +264,6 @@ ist auch dann falsch, wenn die Typen passen.
 5. **`.env` nie committen**, service_role-Key niemals ins Frontend
 6. **Editor: keine destruktive Migration.** Alte Notizen bleiben Plaintext. Siehe Abschnitt 6b
 7. **In der Cloud sind 16 Tabellen**, nicht 8. Siehe Abschnitt 6
+8. **Nur EIN Supabase-Projekt ist aktiv:** `vktilvpwbhrddjytilvs`. Das andere (`vgdqauqqkjwwumhzbuea`) ist verworfen. Siehe Abschnitt 6.
+9. **Keys sind im neuen Format** `sb_secret_…` / `sb_publishable_…`, nicht JWT. PowerShell-Browser-Check täuscht 401 vor — User-Agent `node` setzen für API-Calls.
    200|
