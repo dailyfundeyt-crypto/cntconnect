@@ -5,10 +5,21 @@
 > umschaltbar machen, alle Geheimnisse in Sicherheit, der User weiß was im
 > Browser zu tun ist.
 >
-> **Stand:** 5. Oktober 2026, 21:35 Uhr
+> **Stand:** 5. Oktober 2026, 22:00 Uhr
 > **Cloud:** `vktilvpwbhrddjytilvs` (16 Tabellen verifiziert)
-> **GitHub:** `b3c5c84`, Branch `main`, 82 Commits, alles gepusht
-> **Working-Tree:** ~35 Dateien uncommitted (i18n, RBAC, Drive, Editor)
+> **GitHub:** `dcbdfdb`, Branch `main`, alles gepusht
+> **Working-Tree:** siehe unten — Status vor dem Abarbeiten des Plans
+
+**So nutzt du diesen Plan:**
+1. Führe zuerst Teil I (5 Befehle, 30 Sekunden)
+2. Dann arbeite Phase 1 bis 7 aus Teil C ab
+3. Verifiziere am Ende mit Teil F (11 Erfolgskriterien)
+4. Wenn etwas fehlschlägt: Teil E (Symptom-Tabelle)
+5. Zum Schluss dem User die 7 Schritte aus Teil G geben
+
+**Schwester-Datei:** `PROMPT-FUER-NAECHSTEN-AGENTEN.md` — der Auftragstext,
+den der User in einen neuen Agenten einfügt. Wenn du das hier liest, bist du
+vermutlich dieser Agent.
 
 ---
 
