@@ -112,6 +112,7 @@ Die Integrations-Vorbilder stammen aus `obsidian-copilot` (wie eine CLI angebund
 
 ### Aufbau des Monorepos
 
+**Kern-Anwendungen (7 Stück):**
 ```
 apps/app              Web-UI (TanStack), auch die Level-Verwaltung
 apps/server           Server
@@ -119,16 +120,23 @@ apps/worker           Hintergrund-Jobs
 apps/connect-app      Windows-Programm (Connect.exe)
 apps/helium-shell     Sidebar-Extension für den Helium-Browser
 apps/connect-notch    Notch-Leiste am oberen Bildschirmrand
-packages/agents/*     Agent-Anbindungen: agent-claude-sdk, agent-langgraph,
-                      agent-agno, agent-mastra, agent-crewai, agent-langroid,
-                      agent-llamaindex, agent-pydantic-ai, agent-strands,
-                      agent-microsoft, agent-adk, agent-ag2, agent-bot, agent-computer
+apps/code-flow-flux   FluxCode — Lovable-App „AI app builder", hier als Gast
+```
+
+**Weitere Anwendungen (6 Stück) — keine Connect-Features:**
+`apps/desktop`, `apps/landing`, `apps/seo-agent`, `apps/seo-jev-local`,
+`apps/supervisor`, `apps/examples`
+
+**Agent-Pakete:**
+```
+packages/agents/*     agent-claude-sdk, agent-langgraph, agent-agno, agent-mastra,
+                      agent-crewai, agent-langroid, agent-llamaindex,
+                      agent-pydantic-ai, agent-strands, agent-microsoft,
+                      agent-adk, agent-ag2, agent-bot, agent-computer
 packages/shared       Gemeinsamer Code
 ```
 
-**Achtung, zusätzlich vorhanden** und leicht als eigenes Connect-Feature zu missverstehen:
-`apps/desktop`, `apps/landing`, `apps/seo-agent`, `apps/seo-jev-local`, `apps/supervisor`,
-`apps/examples` sowie das Gast-Projekt `apps/code-flow-flux` (siehe Teil 1).
+**Zusammen: 13 Apps** (`apps/`-Verzeichnisse, unverändert aus dem Repo gezählt).`
 
 ### Die vier Regeln für Agenten
 
@@ -174,12 +182,11 @@ Ordner `Plannung` (eine Ebene über `Brain/`).
 | Connect Helium | Server 3001, Web 3010, Postgres in Docker | `Maschinen und Pfade.md` |
 | Spark (Entwicklung) | **nicht belegt** | Siehe Warnung unten |
 
-> **⚠️ Zur Port-Aussage für Spark:** In `C:\workspace\cntconnect` **steht die Portangabe 8080
-> nirgends** — weder in `package.json`, `vite.config.ts`, `.env` noch in einer anderen
-> Quelldatei. Sie stammt aus einer früheren Notiz und ist derzeit **nicht überprüfbar**. Der
-> Dev-Server läuft über `npm run dev`; welche Nummer er tatsächlich belegt, muss zur Laufzeit
-> geprüft werden. Ebenso gilt: **Connect ist kein laufender Dienst, an den man sich andockt** —
-> es gibt keine `vercel.json` und kein Deployment im Connect-Repo.
+> **⚠️ Port 8080 für Spark:** 8080 ist **Vites Standard-Dev-Port** — er muss nirgends
+> konfiguriert werden und erscheint deshalb in keiner Datei des Repos. Empirisch wurde 8080
+> am 5. Oktober 2026 um 00:43 Uhr als von Spark belegt gemessen (Prozess: `vite dev`).
+> Belegt ist er aber nur, solange der Dev-Server läuft; am Abend des 5.10. war er frei.
+> **Nicht zuverlässig vorhersagbar** — zur Sicherheit zur Laufzeit prüfen.
 
 ---
 
